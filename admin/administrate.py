@@ -22,11 +22,18 @@ def debugExec(commands):
 
 
 # @TODO hardcoded config?
-cwd = os.getcwd() + "/applicationsconfig.ini"
+cwd = os.environ.get('TILDE_CONF')
+if cwd is None:
+  cwd=os.getcwd()+"/applicationsconfig.ini"
+else:
+  if os.path.isfile(cwd) is False:
+    cwd=os.getcwd()+"/applicationsconfig.ini"
+# cwd is now either cwd/applicationsconfig or $TILDE_CONF
 argparser = argparse.ArgumentParser(description = 'interactive registration formular for tilde platforms')
 argparser.add_argument('-c', '--config', default = cwd, 
       type = str, help = 'Path to configuration file', required = False)
 args = argparser.parse_args()
+
 
 
 CONF_FILE = args.config
