@@ -2,12 +2,19 @@
 
 import re, configparser, logging, sqlite3, argparse
 from os import getcwd
-
+from os import environ
+from os import path as ospath
 import re, configparser, logging, sqlite3
 
 
 try:
-  cwd=getcwd()+"/applicationsconfig.ini"
+  cwd = environ.get('TILDE_CONF')
+  if cwd is None:
+    cwd=getcwd()+"/applicationsconfig.ini"
+  else:
+    if ospath.isfile(cwd) is False:
+      cwd=getcwd()+"/applicationsconfig.ini"
+# cwd is now either cwd/applicationsconfig or $TILDE_CONF
   argparser = argparse.ArgumentParser(description='interactive registration formular for tilde platforms')
   argparser.add_argument('-c', '--config', default=cwd, type=str, help='Config file', required=False)
   args = argparser.parse_args()
