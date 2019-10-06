@@ -19,7 +19,6 @@ COPY private/ /app/admin/
 
 # user accessible scripts
 # Make TILDE_ENV 
-COPY config/environment /app/user/.ssh/environment
 COPY public/ /app/user/
 #SSH config into /etc :)
 COPY config/etc /etc
@@ -39,6 +38,8 @@ RUN mkdir -p /var/run/sshd
 # expose SSH port
 EXPOSE 22
 ENV TILDE_CONF="/app/data/applicationsconfig.ini"
+#COPY config/environment /app/user/.ssh/environment
+RUN echo TILDE_CONF=$TILDE_CONF > /app/user/.ssh/environment
 RUN touch /app/data/applications.sqlite
 RUN touch /app/data/applications.log
 #  Doesnt work, @TODO why
