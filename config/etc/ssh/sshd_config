@@ -1,0 +1,11 @@
+UseDNS no
+Protocol 2
+SyslogFacility AUTHPRIV
+PermitRootLogin no
+PermitUserEnvironment yes
+PubkeyAuthentication yes
+ChallengeResponseAuthentication no
+Subsystem	sftp	/usr/lib/openssh/sftp-server
+
+Match User tilde
+  PermitEmptyPasswords yes
