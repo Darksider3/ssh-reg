@@ -39,6 +39,7 @@ RUN mkdir -p /var/run/sshd
 EXPOSE 22
 ENV TILDE_CONF="/app/data/applicationsconfig.ini"
 #COPY config/environment /app/user/.ssh/environment
+RUN mkdir /app/user/.ssh
 RUN echo TILDE_CONF=$TILDE_CONF > /app/user/.ssh/environment
 RUN touch /app/data/applications.sqlite
 RUN touch /app/data/applications.log
