@@ -38,11 +38,11 @@ RUN mkdir -p /var/run/sshd
 # expose SSH port
 EXPOSE 22
 ENV TILDE_CONF="/app/data/applicationsconfig.ini"
-#COPY config/environment /app/user/.ssh/environment
-RUN echo TILDE_CONF=$TILDE_CONF > /app/user/.ssh/environment
+
 RUN touch /app/data/applications.sqlite
 RUN touch /app/data/applications.log
 #  Doesnt work, @TODO why
 #RUN setfacl -R -m u:tilde:rwx /app/data/
 RUN chown -R tilde  /app/data
-CMD ["/usr/sbin/sshd", "-D"]
+RUN mkdir /app/user/.ssh
+CMD ["sh", "-c", " echo TILDE_CONF=$TILDE_CONF > /app/user/.ssh/environment && /usr/sbin/sshd -D"]
