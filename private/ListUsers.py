@@ -8,12 +8,14 @@ class ListUsers:
     db = None
     usersFetch = None
 
-    def __init__(self, ap: bool):
+    def __init__(self, uap: bool = CFG.args.unapproved, a: bool = CFG.args.approved):
         self.db = SQLitedb(CFG.REG_FILE)
-        if not ap:
-            query = "SELECT * FROM `applications` WHERE status = '1'"
-        else:
+        if uap: # only unapproved users
             query = "SELECT * FROM `applications` WHERE status = '0'"
+        elif a: # Approved users
+            query = "SELECT * FROM `applications` WHERE status = '1'"
+        else: # All users
+            query = "SELECT * FROM `applications`"
         self.usersFetch = self.db.query(query)
 
     def prettyPrint(self):
@@ -25,7 +27,7 @@ class ListUsers:
 
 if __name__ == "__main__":
     try:
-        L = ListUsers(CFG.args.unapproved)
+        L = ListUsers()
         fetch = L.getFetch()
         # MAYBE best solution: https://pypi.org/project/texttable/
         # examle:

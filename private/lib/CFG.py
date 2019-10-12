@@ -12,7 +12,9 @@ argparser.add_argument('-c', '--config', default=cwd,
                        type=str, help='Path to configuration file', required=False)
 # store_true just stores true when the command is supplied, so it doesn't need choices nor types
 argparser.add_argument('-u', '--unapproved', default=False, action="store_true",
-                       help='List only unapproved users', required=False)
+                       help='only unapproved users. Default is only approved.', required=False)
+argparser.add_argument('-a', '--approved', default=False, action="store_true",
+                       help="Only approved Users.", required=False)
 args = argparser.parse_args()
 
 CONF_FILE = args.config
