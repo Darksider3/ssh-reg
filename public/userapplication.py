@@ -82,6 +82,9 @@ def check_username(value):
     if len(value) < 3:
         VALID_USER=False
         return False
+    if len(value) > 16:
+        VALID_USER=False
+        return False
     try:
         from pwd import getpwnam
         getpwnam(value)
@@ -125,7 +128,8 @@ def main():
     username = input("Welcome to the ~.fun user application form!\n\nWhat is your desired username? [a-z0-9] allowed:\n")
     while (not re.match("[a-z]+[a-z0-9]", username)) or (not check_username(username)):
         username = input("Invalid Username, maybe it exists already?\nValid characters are only a-z and 0-9."
-                         "\nMake sure your username starts with a character and not a number."
+                         "\nMake sure your username starts with a character and not a number"
+                         " and is not larger than 16 characters."
                          "\nWhat is your desired username? [a-z0-9] allowed:\n")
 
     fullname = input("\nPlease enter your full name:\n")
