@@ -7,9 +7,12 @@ else:
     if os.path.isfile(cwd) is False:
         cwd = os.getcwd() + "/applicationsconfig.ini"
 # cwd is now either cwd/applicationsconfig or $TILDE_CONF
-argparser = argparse.ArgumentParser(description='interactive registration formular for tilde platforms')
+argparser = argparse.ArgumentParser(description='Tilde administration tools')
 argparser.add_argument('-c', '--config', default=cwd,
                        type=str, help='Path to configuration file', required=False)
+# store_true just stores true when the command is supplied, so it doesn't need choices nor types
+argparser.add_argument('-u', '--unapproved', default=False, action="store_true",
+                       help='List only unapproved users', required=False)
 args = argparser.parse_args()
 
 CONF_FILE = args.config
