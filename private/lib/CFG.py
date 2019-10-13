@@ -1,4 +1,7 @@
-import configparser, logging, argparse, os
+import argparse
+import configparser
+import logging
+import os
 
 cwd = os.environ.get('TILDE_CONF')
 if cwd is None:

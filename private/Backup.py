@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 
-from lib.sqlitedb import SQLitedb
+import ListUsers
+import csv
+import io
 import lib.CFG as CFG
-import ListUsers, csv, os, io
 
 if __name__ == "__main__":
     try:

@@ -1,4 +1,7 @@
-import sys, os, subprocess, pwd
+import sys
+import os
+import subprocess
+import pwd
 
 
 class System:
@@ -41,15 +44,16 @@ class System:
         except OSError as e:
             print(f"Could not create {ssh_dir}: Exception: {e}", file=sys.stderr)
             return False
-        with open(ssh_dir + "authorized_keys",  "w") as f:
-            print(pubkey, file=f)
-            f.close()
         try:
+            with open(ssh_dir + "authorized_keys", "w") as f:
+                print(pubkey, file=f)
+                f.close()
             os.chmod(ssh_dir + "authorized_keys", 0o700)  # directory is already 777?
             os.chmod(ssh_dir, 0o700)  # directory is already 777?
         except OSError as e:
-            print(f"Could not chmod 0700 {ssh_dir} or {ssh_dir}/authorized_keys, Exception: {e}", file=sys.stderr)
-            return False
+            print(f"Could not write and/or chmod 0700 {ssh_dir} or {ssh_dir}/authorized_keys, Exception: {e}",
+                  file=sys.stderr)
+            return False  # @TODO Exception in Log
         try:
             pwdnam = pwd.getpwnam(username)
             os.chown(ssh_dir, pwdnam[2], pwdnam[3]) # 2=>uid, 3=>gid
@@ -57,7 +61,7 @@ class System:
         except OSError as e:
             print(f"Could not chown {ssh_dir} and/or authorized_keys to {username} and their group, Exception: {e}",
                   file=sys.stderr)
-            return False
+            return False  # @TODO Exception in Log
         return True
 
     def lock_user_pw(self, username: str, cc: tuple = tuple(["usermod", "--lock"])):
@@ -70,6 +74,8 @@ class System:
             rt = subprocess.call(cc)
             if rt != 0:
                 print(f"Could not lock user '{username}'; '{cc}' returned '{rt}'", file=sys.stderr)
+                return False
+                # @TODO Exception in Log
 
     def add_to_usergroup(self, username: str, group: str = "tilde", cc: tuple = tuple(["usermod", "-a", "-G"])):
         add_command = cc
@@ -81,7 +87,8 @@ class System:
             rt = subprocess.call(cc)
             if rt != 0:
                 print(f"Could not add user '{username}' to group '{group}' with command '{cc}', returned '{rt}'",
-                      file=sys.stderr)
+                      file=sys.stderr)  # @TODO Exception in Log
+                return False
 
     def printTuple(self, tup: tuple):
         pp = ""
