@@ -1,13 +1,4 @@
 import sys, os, subprocess, pwd
-"""
-    @staticmethod
-    def __execScript(user):
-        # @TODO: omfg just write some wrapper-class/lib... sucks hard!
-        username = user["username"]
-        home_dir = "/home/" + username + "/"
-        ssh_dir = home_dir + ".ssh/"
-        executed = []
-"""
 
 
 class System:
@@ -28,12 +19,14 @@ class System:
         elif not self.dry:
             rt = subprocess.call(cc)
             if rt != 0:
-                print(f"Could not create user {username}; '{cc}' returned '{rt}'") # @TODO Logging/Exception
+                print(f"Could not create user {username}; '{cc}' returned '{rt}'", file=sys.stderr)
+                # @TODO Logging/Exception
                 return False
 
     def unregister(self, username: str):
         pass
 
+    # @TODO errno
     def make_ssh_usable(self, username: str, pubkey: str, sshdir: str = ".ssh/"):
         if self.dry:
             print("Nah, @TODO, but actually kinda too lazy for this lul. Just a lot happening here")
@@ -46,7 +39,7 @@ class System:
         except FileExistsError:
             pass # thats actually a good one for us :D
         except OSError as e:
-            print(f"Could not create {ssh_dir}: Exception: {e}")
+            print(f"Could not create {ssh_dir}: Exception: {e}", file=sys.stderr)
             return False
         with open(ssh_dir + "authorized_keys",  "w") as f:
             print(pubkey, file=f)
@@ -55,14 +48,15 @@ class System:
             os.chmod(ssh_dir + "authorized_keys", 0o700)  # directory is already 777?
             os.chmod(ssh_dir, 0o700)  # directory is already 777?
         except OSError as e:
-            print(f"Could not chmod 0700 {ssh_dir} or {ssh_dir}/authorized_keys, Exception: {e}")
+            print(f"Could not chmod 0700 {ssh_dir} or {ssh_dir}/authorized_keys, Exception: {e}", file=sys.stderr)
             return False
         try:
             pwdnam = pwd.getpwnam(username)
             os.chown(ssh_dir, pwdnam[2], pwdnam[3]) # 2=>uid, 3=>gid
             os.chown(ssh_dir + "authorized_keys", pwd.getpwnam(username)[2], pwd.getpwnam(username)[3])
         except OSError as e:
-            print(f"Could not chown {ssh_dir} and/or authorized_keys to {username} and their group, Exception: {e}")
+            print(f"Could not chown {ssh_dir} and/or authorized_keys to {username} and their group, Exception: {e}",
+                  file=sys.stderr)
             return False
         return True
 
@@ -75,7 +69,7 @@ class System:
         elif not self.dry:
             rt = subprocess.call(cc)
             if rt != 0:
-                print(f"Could not lock user '{username}'; '{cc}' returned '{rt}'")
+                print(f"Could not lock user '{username}'; '{cc}' returned '{rt}'", file=sys.stderr)
 
     def add_to_usergroup(self, username: str, group: str = "tilde", cc: tuple = tuple(["usermod", "-a", "-G"])):
         add_command = cc
@@ -86,7 +80,8 @@ class System:
         elif not self.dry:
             rt = subprocess.call(cc)
             if rt != 0:
-                print(f"Could not add user '{username}' to group '{group}' with command '{cc}', returned '{rt}'")
+                print(f"Could not add user '{username}' to group '{group}' with command '{cc}', returned '{rt}'",
+                      file=sys.stderr)
 
     def printTuple(self, tup: tuple):
         pp = ""
