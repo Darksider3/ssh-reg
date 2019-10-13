@@ -6,6 +6,7 @@ import pwd
 
 class System:
     """Class to interact with the system specifically to support our needs 0w0"""
+
     dry = False
     create_command = []
     home = ""
@@ -19,7 +20,12 @@ class System:
         :param home: Standard directory to search for the home directories of your users(default is /home/)
         :type home: str
         """
+
         self.dry = dryrun
+        if not home.endswith("/"):
+            home += "/"
+        if not os.path.isdir(home):
+            raise ValueError("home should be an existent directory...")
         self.home = home
 
     def register(self, username: str, cc: tuple = tuple(["useradd", "-m"])) -> bool:
@@ -67,7 +73,7 @@ class System:
             print("Nah, @TODO, but actually kinda too lazy for this lul. Just a lot happening here")
             return True
         if not sshdir.endswith("/"):
-            return False  # @TODO Exception in Log
+            sshdir += "/"
         ssh_dir = self.home + username + "/" + sshdir
         try:
             os.mkdir(ssh_dir)
