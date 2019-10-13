@@ -146,7 +146,8 @@ class System:
                 return False
             return True
 
-    def printTuple(self, tup: tuple) -> None:
+    @staticmethod
+    def printTuple(tup: tuple) -> None:
         """Prints a tuple with spaces as separators
 
         :param tup: Tuple you want to print
@@ -190,7 +191,7 @@ if __name__ == "__main__":
         S.register("dar")
         S.lock_user_pw("dar")
         S.add_to_usergroup("dar")
-        #if not S.make_ssh_usable("dar", "SSHpub"):
+        # if not S.make_ssh_usable("dar", "SSHpub"):
         #    print("Huh, error :shrug:")
         exit(0)
     except KeyboardInterrupt:

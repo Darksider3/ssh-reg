@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import sqlite3
-from sys import stderr as STDERR
+from sys import stderr as stderr
 
 
 # create dictionary out of sqlite results
@@ -32,16 +32,16 @@ class SQLitedb:
             self.connection = sqlite3.connect(db)
             self.cursor = self.connection.cursor()
         except sqlite3.Error as e:
-            print("Connection error: %s" % e, file=STDERR)
+            print("Connection error: %s" % e, file=stderr)
 
-        self.cursor.row_factory = dict_factory # every result will be a dict now
+        self.cursor.row_factory = dict_factory  # every result will be a dict now
 
     def __del__(self):
         try:
             self.connection.commit()
             self.connection.close()
         except sqlite3.Error as e:
-            print("Couldn't gracefully close db: %s" % e, file=STDERR)
+            print("Couldn't gracefully close db: %s" % e, file=stderr)
 
     def query(self, qq: str) -> list:
         """Do a query and automagically get the fetched results in a list
@@ -55,7 +55,7 @@ class SQLitedb:
             self.cursor.execute(qq)
             self.last_result = self.cursor.fetchall()
         except sqlite3.Error as e:
-            print("Couldn't execute query %s, exception: %s" % (qq, e), file=STDERR)
+            print("Couldn't execute query %s, exception: %s" % (qq, e), file=stderr)
             self.last_result = []
         return self.last_result
 
@@ -81,10 +81,10 @@ class SQLitedb:
             self.cursor.execute(qq, deliver)
             self.last_result = self.cursor.fetchall()
         except sqlite3.Error as e:
-            print("Couldn't execute query %s, exception: %s" % (qq, e), file=STDERR)
+            print("Couldn't execute query %s, exception: %s" % (qq, e), file=stderr)
             self.last_result = []
         except TypeError as e:
-            print("Types in given tuple doesnt match to execute query \"%s\": %s" % (qq, e), file=STDERR)
+            print("Types in given tuple doesnt match to execute query \"%s\": %s" % (qq, e), file=stderr)
             self.last_result = []
         return self.last_result
 
