@@ -13,24 +13,25 @@ class System:
         self.dry = dryrun
         self.home = home
 
-    def register(self, username: str, pubkey: str, cc: tuple = tuple(["useradd", "-m"])):
+    def register(self, username: str, pubkey: str, cc: tuple = tuple(["useradd", "-m"])) -> bool:
         create_command = cc
         cc = create_command + tuple([username])
         if self.dry:
             self.printTuple(cc)
-            return 0
+            return True
         elif not self.dry:
             rt = subprocess.call(cc)
             if rt != 0:
                 print(f"Could not create user {username}; '{cc}' returned '{rt}'", file=sys.stderr)
                 # @TODO Logging/Exception
                 return False
+            return True
 
     def unregister(self, username: str):
         pass
 
     # @TODO errno
-    def make_ssh_usable(self, username: str, pubkey: str, sshdir: str = ".ssh/"):
+    def make_ssh_usable(self, username: str, pubkey: str, sshdir: str = ".ssh/") -> bool:
         if self.dry:
             print("Nah, @TODO, but actually kinda too lazy for this lul. Just a lot happening here")
             return True
@@ -64,37 +65,52 @@ class System:
             return False  # @TODO Exception in Log
         return True
 
-    def lock_user_pw(self, username: str, cc: tuple = tuple(["usermod", "--lock"])):
+    def lock_user_pw(self, username: str, cc: tuple = tuple(["usermod", "--lock"])) -> bool:
         lock_command = cc
         cc = lock_command + tuple([username])
         if self.dry:
             self.printTuple(cc)
-            return 0
+            return True
         elif not self.dry:
             rt = subprocess.call(cc)
             if rt != 0:
                 print(f"Could not lock user '{username}'; '{cc}' returned '{rt}'", file=sys.stderr)
                 return False
                 # @TODO Exception in Log
+            return True
 
-    def add_to_usergroup(self, username: str, group: str = "tilde", cc: tuple = tuple(["usermod", "-a", "-G"])):
+    def add_to_usergroup(self, username: str, group: str = "tilde", cc: tuple = tuple(["usermod", "-a", "-G"])) -> bool:
         add_command = cc
         cc = add_command + tuple([group, username])
         if self.dry:
             self.printTuple(cc)
-            return 0
+            return True
         elif not self.dry:
             rt = subprocess.call(cc)
             if rt != 0:
                 print(f"Could not add user '{username}' to group '{group}' with command '{cc}', returned '{rt}'",
                       file=sys.stderr)  # @TODO Exception in Log
                 return False
+            return True
 
-    def printTuple(self, tup: tuple):
+    def printTuple(self, tup: tuple) -> None:
         pp = ""
         for i in tup:
             pp += i + " "
         print(pp)
+
+    def removeUser(self, username: str, cc: tuple = tuple(["userdel", "-r"])) -> bool:
+        remove_command = cc
+        cc = remove_command + tuple([username])
+        if self.dry:
+            self.printTuple(cc)
+            return True
+        else:
+            ret = subprocess.call(cc)
+            if ret != 0:
+                print(f"Could not delete user with command {cc}. Return code: {ret}")
+                return False
+            return True
 
 
 if __name__ == "__main__":

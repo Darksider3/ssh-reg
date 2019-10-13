@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import sqlite3
 
 from lib.sqlitedb import SQLitedb
 import lib.CFG as CFG
@@ -18,10 +19,10 @@ class ListUsers:
             query = "SELECT * FROM `applications`"
         self.usersFetch = self.db.query(query)
 
-    def prettyPrint(self):
+    def prettyPrint(self) -> None:
         pass # see below why not implemented yet, texttable...
 
-    def getFetch(self):
+    def getFetch(self) -> sqlite3:
         return self.usersFetch
 
 
