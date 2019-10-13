@@ -8,11 +8,11 @@ class ListUsers:
     db = None
     usersFetch = None
 
-    def __init__(self, uap: bool = CFG.args.unapproved, a: bool = CFG.args.approved):
+    def __init__(self, uap: bool = CFG.args.unapproved, app: bool = CFG.args.approved):
         self.db = SQLitedb(CFG.REG_FILE)
         if uap: # only unapproved users
             query = "SELECT * FROM `applications` WHERE status = '0'"
-        elif a: # Approved users
+        elif app: # Approved users
             query = "SELECT * FROM `applications` WHERE status = '1'"
         else: # All users
             query = "SELECT * FROM `applications`"
@@ -27,9 +27,10 @@ class ListUsers:
 
 if __name__ == "__main__":
     try:
+        ret = ""
         L = ListUsers()
         fetch = L.getFetch()
-        # MAYBE best solution: https://pypi.org/project/texttable/
+        # @TODO MAYBE best solution: https://pypi.org/project/texttable/
         # examle:
         """
 from texttable import Texttable
@@ -50,14 +51,19 @@ print(t.draw())
             print("ID: {}; Username: \"{}\"; Mail: {}; Name: \"{}\"; Registered: {}; Status: {}".format(
                 user["id"], user["username"], user["email"], user["name"], user["timestamp"], user["status"]
             ))"""
-        print("ID %-1s| Username %-5s| Mail %-20s| Name %-17s| Registered %-8s| State |" % (
+        ret += "ID %-1s| Username %-5s| Mail %-20s| Name %-17s| Registered %-8s| State |\n" % (
             " ", " ", " ", " ", " "
-        ))
-        print(101*"-")
+        )
+        ret += 101*"-" + "\n"
         for user in fetch:
-            print("%-4i| %-14s| %-25s| %-22s| %-8s| %-6i|" % (
+            ret += "%-4i| %-14s| %-25s| %-22s| %-8s| %-6i|\n" % (
                 user["id"], user["username"], user["email"], user["name"], user["timestamp"], user["status"]
-            ))
+            )
+        if CFG.args.file != "stdout":
+            with open(CFG.args.file, 'w') as f:
+                print(ret, file=f)
+        else:
+            print(ret)
         exit(0)
     except KeyboardInterrupt:
         pass
