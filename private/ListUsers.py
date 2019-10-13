@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-import sqlite3
 
 from lib.sqlitedb import SQLitedb
 import lib.CFG as CFG
@@ -22,7 +21,12 @@ class ListUsers:
     def prettyPrint(self) -> None:
         pass # see below why not implemented yet, texttable...
 
-    def getFetch(self) -> sqlite3:
+    def getFetch(self) -> list:
+        """ Returns a complete fetch done by the sqlitedb-class
+
+        :return: Complete fetchall() in a dict-factory
+        :rtype: list
+        """
         return self.usersFetch
 
 

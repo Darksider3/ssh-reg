@@ -12,12 +12,21 @@ def dict_factory(cursor, row):
 
 
 class SQLitedb:
+    """SQLitedb handles EVERYTHING directly related to our Database."""
+
     db = ""
     cursor = None
     connection = None
     last_result = None
 
     def __init__(self, dbpath: str):
+        """
+        :param dbpath: Path to the database we want to open
+        :type dbpath: str
+        :returns: Object for the SQLitedb-Class.
+        :rtype: object
+        """
+
         db = dbpath
         try:
             self.connection = sqlite3.connect(db)
@@ -35,6 +44,13 @@ class SQLitedb:
             print("Couldn't gracefully close db: %s" % e, file=STDERR)
 
     def query(self, qq: str) -> list:
+        """Do a query and automagically get the fetched results in a list
+        :param qq: Query to execute
+        :type qq: str
+        :returns: A tuple(/list) consisting with any fetched results
+        :rtype: list
+        """
+
         try:
             self.cursor.execute(qq)
             self.last_result = self.cursor.fetchall()
@@ -46,11 +62,21 @@ class SQLitedb:
     # sometimes we need the cursor for safety reasons, for example does sqlite3 all the security related
     # escaoing in supplied strings for us, when we deliver it to con.execute in the second argument as a tuple
     def getCursor(self) -> sqlite3:
+        """Returns SQLite3 Cursor. Use with **c a u t i o n**... """
         return self.cursor
 
     # we could try to utilise that ourselfs in a function. Be c a r e f u l, these values in the tuple MUST HAVE
     # THE RIGHT TYPE
     def safequery(self, qq: str, deliver: tuple) -> list:
+        """ Shall handle any query that has user input in it as an alternative to self.query
+        :param qq: Query to execute
+        :type qq: str
+        :param deliver: User inputs marked with the placeholder(`?`) in the str
+        :type deliver: tuple
+        :returns: A tuple(/list) consisting with any fetched results
+        :rtype: list
+        """
+
         try:
             self.cursor.execute(qq, deliver)
             self.last_result = self.cursor.fetchall()
@@ -63,6 +89,13 @@ class SQLitedb:
         return self.last_result
 
     def removeApplicantFromDB(self, userid: int) -> bool:
+        """Removes Applicants from the DB by ID. Use along System.removeUser()
+        :param userid: User ID to remove from the Database
+        :type userid: int
+        :returns: True, if removal was successful(from the DB), False when not
+        :rtype: bool
+        """
+
         try:
             self.last_result = self.cursor.execute("DELETE FROM `applications` WHERE id = ? ", [userid])
             self.connection.commit()
@@ -72,6 +105,13 @@ class SQLitedb:
         return True
 
     def removeApplicantFromDBperUsername(self, username: str) -> bool:
+        """Removes Applicants from the DB by Username. Use along System.removeUser()
+        :param username: Username to remove from the database
+        :type username: str
+        :returns: True, if removal was successful(from the DB), False when not
+        :rtype: bool
+        """
+
         try:
             self.last_result = self.cursor.execute("DELETE FROM `applications` WHERE username = ?", [username])
             self.connection.commit()
