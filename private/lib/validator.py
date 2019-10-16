@@ -3,10 +3,12 @@ import pwd
 
 
 def checkUsernameCharacters(username: str):
-    if re.match("[a-z]+[a-z0-9]", username):
-        return True
-    else:
-        return False
+    if " " not in username and "_" not in username and username.isascii() and username.islower() and \
+            not username[0].isnumeric():
+        if not re.search(r"\W+", username):
+            if not re.search("[^a-z0-9]", username):
+                return True
+    return False
 
 
 def checkUsernameLength(username: str):
@@ -21,9 +23,9 @@ def checkUserExists(username: str):
     try:
         pwd.getpwnam(username)
     except KeyError:
-        return True  # User already exists
+        return False  # User already exists
     else:
-        return False  # User doesnt exist
+        return True  # User doesnt exist
 
 
 def checkSSHKey(key: str):
