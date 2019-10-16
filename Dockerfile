@@ -8,7 +8,20 @@ RUN apt-get update &&\
 
 # Clean up APT when done.
 RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+# create user for applications
+RUN useradd -Md /app/user/ -s /app/user/userapplication.py tilde
 
+# make tilde's password empty
+RUN passwd -d tilde
+RUN usermod -U tilde
+
+# add admin user
+RUN useradd -Md /app/admin -s /app/admin/administrate.py admin
+# privilege separation directory
+RUN mkdir -p /var/run/sshd
+# expose SSH port
+EXPOSE 22
+ENV TILDE_CONF="/app/data/applicationsconfig.ini"
 
 # private/{scripts, administrate.py}, public/{scripts, userapplications.py}, config/userapplicatonsconfig.ini
 #configs, logs, db
@@ -22,22 +35,6 @@ COPY private/ /app/admin/
 COPY public/ /app/user/
 #SSH config into /etc :)
 COPY config/etc /etc
-
-# create user for applications
-RUN useradd -Md /app/user/ -s /app/user/userapplication.py tilde
-
-# make tilde's password empty
-RUN passwd -d tilde
-RUN usermod -U tilde
-
-# add admin user
-RUN useradd -Md /app/admin -s /app/admin/administrate.py admin
-# privilege separation directory
-RUN mkdir -p /var/run/sshd
-
-# expose SSH port
-EXPOSE 22
-ENV TILDE_CONF="/app/data/applicationsconfig.ini"
 
 RUN touch /app/data/applications.sqlite
 RUN touch /app/data/applications.log
