@@ -51,7 +51,7 @@ class System:
             return True
 
     def unregister(self, username: str):
-        pass
+        self.removeUser(username)
 
     def make_ssh_usable(self, username: str, pubkey: str, sshdir: str = ".ssh/") -> bool:
         """ Make SSH usable for our newly registered user
