@@ -79,6 +79,7 @@ class Backup:
                     pass  # @TODO: Import with sqlitedb and system. Will be fun Kappa
         except OSError as E:
             print(f"UUFFF, something went WRONG with the file {fname}: {E}")
+        return True
 
 
 if __name__ == "__main__":
