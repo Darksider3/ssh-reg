@@ -38,7 +38,6 @@ class System:
         :return: True, if worked, raises lib.UserExceptions.UserExistsAlready when not
         :rtype: bool
         """
-
         create_command = cc
         cc = create_command + tuple([username])
         if self.dry:
@@ -78,7 +77,7 @@ class System:
         except FileExistsError:
             pass  # thats actually a good one for us :D
         except OSError as e:
-            raise lib.UserExceptions.HomeDirExistsAlready(f"Could not create {ssh_dir}: Exception: {e}")
+            raise lib.UserExceptions.SSHDirUncreatable(f"Could not create {ssh_dir}: Exception: {e}")
 
         try:
             with open(ssh_dir + "authorized_keys", "w") as f:
