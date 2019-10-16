@@ -1,7 +1,7 @@
-import sys
 import os
 import subprocess
 import pwd
+import lib.UserExceptions
 
 
 class System:
@@ -35,7 +35,7 @@ class System:
         :type username: str
         :param cc: Tuple with commands separated to execute on the machine. (defaults to useradd -m)
         :type cc: tuple
-        :returns: True, when the user was successfully created, False when not
+        :return: True, if worked, raises lib.UserExceptions.UserExistsAlready when not
         :rtype: bool
         """
 
@@ -47,15 +47,12 @@ class System:
         elif not self.dry:
             rt = subprocess.call(cc)
             if rt != 0:
-                print(f"Could not create user {username}; '{cc}' returned '{rt}'", file=sys.stderr)
-                # @TODO Logging/Exception
-                return False
+                raise lib.UserExceptions.UserExistsAlready(f"User {username} exists already")
             return True
 
     def unregister(self, username: str):
         pass
 
-    # @TODO errno
     def make_ssh_usable(self, username: str, pubkey: str, sshdir: str = ".ssh/") -> bool:
         """ Make SSH usable for our newly registered user
 
@@ -65,7 +62,8 @@ class System:
         :type pubkey: str
         :param sshdir: Directory to write the authorized_keys File to. PWD is $HOME of said user. (defaults to ".ssh/")
         :type sshdir: str
-        :return: True, when everything worked out good, false when something bad happened. Outputs the error of it.
+        :return: True, if worked, raises lib.UserExceptions.UnknownReturnCode, lib.UserExceptions.HomeDirExistsAlready
+         or lib.UserExceptions.ModifyFilesystem when not
         :rtype: bool
         """
 
@@ -80,8 +78,8 @@ class System:
         except FileExistsError:
             pass  # thats actually a good one for us :D
         except OSError as e:
-            print(f"Could not create {ssh_dir}: Exception: {e}", file=sys.stderr)
-            return False
+            raise lib.UserExceptions.HomeDirExistsAlready(f"Could not create {ssh_dir}: Exception: {e}")
+
         try:
             with open(ssh_dir + "authorized_keys", "w") as f:
                 print(pubkey, file=f)
@@ -89,17 +87,17 @@ class System:
             os.chmod(ssh_dir + "authorized_keys", 0o700)  # directory is already 777?
             os.chmod(ssh_dir, 0o700)  # directory is already 777?
         except OSError as e:
-            print(f"Could not write and/or chmod 0700 {ssh_dir} or {ssh_dir}/authorized_keys, Exception: {e}",
-                  file=sys.stderr)
-            return False  # @TODO Exception in Log
+            raise lib.UserExceptions.ModifyFilesystem(
+                f"Could not write and/or chmod 0700 {ssh_dir} or {ssh_dir}/authorized_keys, Exception: {e}")
         try:
             pwdnam = pwd.getpwnam(username)
             os.chown(ssh_dir, pwdnam[2], pwdnam[3])  # 2=>uid, 3=>gid
             os.chown(ssh_dir + "authorized_keys", pwd.getpwnam(username)[2], pwd.getpwnam(username)[3])
-        except OSError as e:
-            print(f"Could not chown {ssh_dir} and/or authorized_keys to {username} and their group, Exception: {e}",
-                  file=sys.stderr)
-            return False  # @TODO Exception in Log
+        except OSError as e:  # by os.chown
+            raise lib.UserExceptions.ModifyFilesystem(
+                f"Could not chown {ssh_dir} and/or authorized_keys to {username} and their group, Exception: {e}",)
+        except KeyError as e:  # by PWD
+            raise lib.UserExceptions.General(f"PWD can't find {username}: {e}")
         return True
 
     def lock_user_pw(self, username: str, cc: tuple = tuple(["usermod", "--lock"])) -> bool:
@@ -110,7 +108,7 @@ class System:
         :param cc: Commands to run in the subprocess to lock it down(defaults to usermod --lock)
         :type cc: tuple
         :rtype: bool
-        :return: True when the lock worked, false when not.
+        :return: True, if worked, raises lib.UserExceptions.UnknownReturnCode when not
         """
 
         lock_command = cc
@@ -121,9 +119,7 @@ class System:
         elif not self.dry:
             rt = subprocess.call(cc)
             if rt != 0:
-                print(f"Could not lock user '{username}'; '{cc}' returned '{rt}'", file=sys.stderr)
-                return False
-                # @TODO Exception in Log
+                raise lib.UserExceptions.UnknownReturnCode(f"Could not lock user '{username}'; '{cc}' returned '{rt}'")
             return True
 
     def add_to_usergroup(self, username: str, group: str = "tilde", cc: tuple = tuple(["usermod", "-a", "-G"])) -> bool:
@@ -135,7 +131,7 @@ class System:
         :type group: str
         :param cc: Commands to execute that adds your user to said specific group(defaults to usermod -a -G")
         :type cc: tuple
-        :return: True, if worked, False when not.
+        :return: True, if worked, raises lib.UserExceptions.UnknownReturnCode when not
         :rtype bool
         """
 
@@ -147,9 +143,8 @@ class System:
         elif not self.dry:
             rt = subprocess.call(cc)
             if rt != 0:
-                print(f"Could not add user '{username}' to group '{group}' with command '{cc}', returned '{rt}'",
-                      file=sys.stderr)  # @TODO Exception in Log
-                return False
+                raise lib.UserExceptions.UnknownReturnCode(
+                    f"Could not add user '{username}' to group '{group}' with command '{cc}', returned '{rt}'",)
             return True
 
     @staticmethod
@@ -174,7 +169,7 @@ class System:
         :type username: str
         :param cc: Commands to execute to delete the user from the System(defaults to userdel -r)
         :type cc: tuple
-        :return: True, when worked, False if not.
+        :return: True, if worked, raises lib.UserExceptions.UnknownReturnCode when not
         :rtype: bool
         """
 
@@ -186,9 +181,17 @@ class System:
         else:
             ret = subprocess.call(cc)
             if ret != 0:
-                print(f"Could not delete user with command {cc}. Return code: {ret}")
-                return False
+                raise lib.UserExceptions.UnknownReturnCode(
+                    f"Could not delete user with command {cc}. Return code: {ret}")
             return True
+
+
+def AIO(username, pubkey, group="tilde"):
+    syst = System(dryrun=False)
+    syst.register(username)
+    syst.lock_user_pw(username)
+    syst.add_to_usergroup(username, group)
+    syst.make_ssh_usable(username, pubkey)
 
 
 if __name__ == "__main__":
