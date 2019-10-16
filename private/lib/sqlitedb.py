@@ -55,6 +55,9 @@ class SQLitedb:
             self.cursor.execute(qq)
             self.last_result = self.cursor.fetchall()
             self.connection.commit()
+        except sqlite3.OperationalError:
+            self._createTable()
+            return self.query(qq)
         except sqlite3.Error as e:
             print("Couldn't execute query %s, exception: %s" % (qq, e), file=stderr)
             self.last_result = []
@@ -88,6 +91,9 @@ class SQLitedb:
         except TypeError as e:
             print("Types in given tuple doesnt match to execute query \"%s\": %s" % (qq, e), file=stderr)
             self.last_result = []
+        except sqlite3.OperationalError as e:
+            self._createTable()
+            return self.safequery(qq, deliver)
         return self.last_result
 
     def removeApplicantFromDB(self, userid: int) -> bool:
@@ -103,6 +109,10 @@ class SQLitedb:
             self.connection.commit()
         except sqlite3.Error as e:
             print(f"Could not delete user with id: {userid}, exception in DB: {e}")  # @TODO LOGGING FFS
+            return False
+        except sqlite3.OperationalError:
+            print("The database has probably not yet seen any users, so it didnt create your table yet. Come back"
+                  "when a user tried to register")
             return False
         return True
 
@@ -120,7 +130,26 @@ class SQLitedb:
         except sqlite3.Error as e:
             print(f"Could not delete user {username}, exception in DB: {e}")  # @TODO LOGGING
             return False
+        except sqlite3.OperationalError:
+            print("The database has probably not yet seen any users, so it didnt create your table yet. Come back"
+                  "when a user tried to register")
+            return False
         return True
+
+    def _createTable(self):
+        try:
+            self.cursor.execute(
+                "CREATE TABLE IF NOT EXISTS applications("
+                "id INTEGER PRIMARY KEY AUTOINCREMENT,"
+                "username TEXT NOT NULL, email TEXT NOT NULL,"
+                "name TEXT NOT NULL, pubkey TEXT NOT NULL,"
+                "timestamp DATETIME DEFAULT CURRENT_TIMESTAMP CONSTRAINT "
+                "timestamp_valid CHECK( timestamp IS strftime('%Y-%m-%d %H:%M:%S', timestamp))"
+                ",status INTEGER NOT NULL DEFAULT 0);")
+            self.connection.commit()
+        except sqlite3.Error as e:
+            print(f"The database probably doesn't exist yet, but read the message: {e}")
+        print("The database table didn't exist yet; created it successfully!")
 
 
 if __name__ == "__main__":
