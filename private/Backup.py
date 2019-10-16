@@ -54,16 +54,12 @@ class Backup:
             pass  # empty tuple means everything
         try:
             with open(fname, 'r', newline='') as f:
-                import lib.sqlitedb as sql
+                import lib.sqlitedb
                 import lib.System
                 sysctl = lib.System.System()
                 sql = lib.sqlitedb.SQLitedb(CFG.REG_FILE)
                 reader = csv.DictReader(f)  # @TODO csv.Sniffer to compare? When yes, give force-accept option
                 for row in reader:
-                    sql.safequery("INSERT INTO `applications` (id, username, name, timestamp, email, pubkey, status) "
-                                  "VALUES (?,?,?,?,?,?,?)",
-                                  tuple([row["id"], row["username"], row["name"], row["timestamp"],
-                                         row["email"], row["pubkey"], row["status"]]))  # @TODO: without IDs
                     if row["status"] == "1":
                         sysctl.register(row["username"])
                         sysctl.lock_user_pw(row["username"])
@@ -76,6 +72,10 @@ class Backup:
                               row['status'] + "not approved, therefore not registered.")
                     else:
                         print(f"Uhm, ok. Type is {type(row['status'])}, and value is {row['status']}")
+                    sql.safequery("INSERT INTO `applications` (username, name, timestamp, email, pubkey, status) "
+                                  "VALUES (?,?,?,?,?,?)",
+                                  tuple([row["username"], row["name"], row["timestamp"],
+                                         row["email"], row["pubkey"], row["status"]]))  # @TODO: without IDs
                     pass  # @TODO: Import with sqlitedb and system. Will be fun Kappa
         except OSError as E:
             print(f"UUFFF, something went WRONG with the file {fname}: {E}")
