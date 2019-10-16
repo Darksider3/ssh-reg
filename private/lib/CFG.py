@@ -20,6 +20,11 @@ argparser.add_argument('-a', '--approved', default=False, action="store_true",
                        help="Only approved Users.", required=False)
 argparser.add_argument('-f', '--file', default="stdout",
                        type=str, help='write to file instead of stdout', required=False)
+argparser.add_argument('--Import', default=False, action="store_true",
+                       help="Import Users from file. Affects currently only Backup.py.\n"
+                            "Setting this to true will result in -f being interpreted as the input file to import "
+                            "users from. The file MUST be a comma separated CSV file being readable having it's "
+                            "defined columns written in the first line.")
 args = argparser.parse_args()
 
 CONF_FILE = args.config
