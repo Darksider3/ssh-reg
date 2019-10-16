@@ -4,6 +4,8 @@ import ListUsers
 import csv
 import io
 import lib.CFG as CFG
+import lib.validator
+import lib.UserExceptions
 import os
 
 
@@ -52,6 +54,7 @@ class Backup:
             return None  # @TODO maybe some better output here
         if userids:
             pass  # empty tuple means everything
+        # noinspection PyBroadException
         try:
             with open(fname, 'r', newline='') as f:
                 import lib.sqlitedb
@@ -60,25 +63,45 @@ class Backup:
                 sql = lib.sqlitedb.SQLitedb(CFG.REG_FILE)
                 reader = csv.DictReader(f)  # @TODO csv.Sniffer to compare? When yes, give force-accept option
                 for row in reader:
+                    # if any of this fails move on to the next user, just print a relatively helpful message lel
+                    if not lib.validator.checkUsernameLength(row["username"]):
+                        print(f"The username {row['username']} is either too long(>16) or short(<3).")
+                        continue
+                    if not lib.validator.checkUsernameCharacters(row["username"]):
+                        print(f"The username contains unsupported characters or starts with a number: "
+                              f"{row['username']}")
+                        continue
+                    if not lib.validator.checkSSHKey(row["pubkey"]):
+                        print(f"Following SSH-Key isn't valid: {row['pubkey']}")
+                        continue
+                    if lib.validator.checkUserExists(row["username"]):
+                        print(f"The user '{row['username']}' already exists.")
+                        continue
+                    if not lib.validator.checkEmail(row["email"]):
+                        print(f"The E-Mail address {row['email']} is not valid.")
+                        continue
                     if row["status"] == "1":
-                        sysctl.register(row["username"])
-                        sysctl.lock_user_pw(row["username"])
-                        sysctl.add_to_usergroup(row["username"])
-                        sysctl.make_ssh_usable(row["username"], row["pubkey"])
-                        print(row['id'], row['username'], row['email'], row['name'], row['pubkey'], row['timestamp'],
-                              row['status'] + "====> Registered.")
+                        try:
+                            sysctl.register(row["username"])  # @TODO exception lib.UserExceptions.UserExistsAlready
+                            sysctl.lock_user_pw(row["username"])  # @TODO exception lib.UserExceptions.UnknownReturnCode
+                            sysctl.add_to_usergroup(row["username"])  # @TODO exception lib.UnknownReturnCode
+                            sysctl.make_ssh_usable(row["username"], row["pubkey"])  # @TODO exception
+                            print(row['username'], "====> Registered.")
+                        except Exception as e:
+                            print(e)
+                            continue
                     elif row["status"] == "0":
-                        print(row['id'], row['username'], row['email'], row['name'], row['pubkey'], row['timestamp'],
-                              row['status'] + "not approved, therefore not registered.")
-                    else:
-                        print(f"Uhm, ok. Type is {type(row['status'])}, and value is {row['status']}")
-                    sql.safequery("INSERT INTO `applications` (username, name, timestamp, email, pubkey, status) "
-                                  "VALUES (?,?,?,?,?,?)",
-                                  tuple([row["username"], row["name"], row["timestamp"],
-                                         row["email"], row["pubkey"], row["status"]]))  # @TODO: without IDs
-                    pass  # @TODO: Import with sqlitedb and system. Will be fun Kappa
-        except OSError as E:
-            print(f"UUFFF, something went WRONG with the file {fname}: {E}")
+                        print(row['username'] + "not approved, therefore not registered.")
+                    try:
+                        sql.safequery(
+                            "INSERT INTO `applications` (username, name, timestamp, email, pubkey, status) "
+                            "VALUES (?,?,?,?,?,?)", tuple([row["username"], row["name"], row["timestamp"],
+                                                           row["email"], row["pubkey"], row["status"]]))
+                    except OSError as E:
+                        pass
+                        print(f"UUFFF, something went WRONG with the file {fname}: {E}")
+        except Exception as e:
+            print(f"Exception! UNCATCHED! {type(e)}")
         return True
 
 

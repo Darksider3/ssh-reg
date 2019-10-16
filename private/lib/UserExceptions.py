@@ -18,5 +18,30 @@ class ModifyFilesystem(General):
     pass
 
 
-class HomeDirExistsAlready(ModifyFilesystem):
+class SSHDirUncreatable(ModifyFilesystem):
     pass
+
+
+class SQLiteDatabaseDoesntExistYet(General):
+    pass
+
+
+class User(Exception):
+    pass
+
+
+class UsernameLength(User):
+    pass
+
+
+class UsernameTooShort(User):
+    pass
+
+
+class UsernameTooLong(User):
+    pass
+
+
+class UsernameInvalidCharacters(User):
+    pass
+
