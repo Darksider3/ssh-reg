@@ -54,6 +54,7 @@ class SQLitedb:
         try:
             self.cursor.execute(qq)
             self.last_result = self.cursor.fetchall()
+            self.connection.commit()
         except sqlite3.Error as e:
             print("Couldn't execute query %s, exception: %s" % (qq, e), file=stderr)
             self.last_result = []
@@ -80,6 +81,7 @@ class SQLitedb:
         try:
             self.cursor.execute(qq, deliver)
             self.last_result = self.cursor.fetchall()
+            self.connection.commit()
         except sqlite3.Error as e:
             print("Couldn't execute query %s, exception: %s" % (qq, e), file=stderr)
             self.last_result = []
