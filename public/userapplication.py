@@ -46,7 +46,9 @@ def __createTable(cursor, connection):
             "id INTEGER PRIMARY KEY AUTOINCREMENT,"
             "username TEXT NOT NULL, email TEXT NOT NULL,"
             "name TEXT NOT NULL, pubkey TEXT NOT NULL,"
-            "timestamp DATETIME DEFAULT CURRENT_TIMESTAMP, status INTEGER NOT NULL DEFAULT 0);")
+            "timestamp DATETIME DEFAULT CURRENT_TIMESTAMP CONSTRAINT "
+            "timestamp_valid CHECK( timestamp IS strftime('%Y-%m-%d %H:%M:%S', timestamp))"
+            ",status INTEGER NOT NULL DEFAULT 0);")
         connection.commit()
     except sqlite3.Error as e:
         logging.exception("Couldn't create needed SQLite Table! Exception: %s" % e)
