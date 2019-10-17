@@ -1,5 +1,7 @@
 import re
 import pwd
+import lib.sqlitedb
+import lib.CFG as CFG
 
 
 def checkUsernameCharacters(username: str):
@@ -23,9 +25,22 @@ def checkUserExists(username: str):
     try:
         pwd.getpwnam(username)
     except KeyError:
-        return False  # User already exists
+        return True  # User already exists
     else:
-        return True  # User doesnt exist
+        if checkUserInDB(username):
+            return True
+        return False
+
+
+def checkUserInDB(username: str):
+    try:
+        L = lib.sqlitedb.SQLitedb(CFG.REG_FILE)
+        fetched = L.safequery("SELECT * FROM 'applications' WHERE username = ?", tuple([username]))
+        if fetched:
+            return True
+    except lib.sqlitedb.sqlite3.Error as e:
+        print(f"SQLite Exception: {e}")
+    return False
 
 
 def checkSSHKey(key: str):
@@ -52,3 +67,12 @@ def checkEmail(mail: str):
         return False
     else:
         return True
+
+
+def checkDatetimeFormat(form: str):
+    import datetime
+    try:
+        datetime.datetime.strptime(form, "%Y-%m-%d %H:%M:%S")
+    except ValueError:
+        return False
+    return True
