@@ -85,15 +85,17 @@ class SQLitedb:
             self.cursor.execute(qq, deliver)
             self.last_result = self.cursor.fetchall()
             self.connection.commit()
-        except sqlite3.Error as e:
-            print("Couldn't execute query %s, exception: %s" % (qq, e), file=stderr)
-            self.last_result = []
         except TypeError as e:
             print("Types in given tuple doesnt match to execute query \"%s\": %s" % (qq, e), file=stderr)
             self.last_result = []
         except sqlite3.OperationalError as e:
             self._createTable()
             return self.safequery(qq, deliver)
+        except sqlite3.Error as e:
+            print("Couldn't execute query %s, exception: %s" % (qq, e), file=stderr)
+            print(deliver)
+            print(type(e))
+            self.last_result = []
         return self.last_result
 
     def removeApplicantFromDB(self, userid: int) -> bool:
@@ -107,12 +109,12 @@ class SQLitedb:
         try:
             self.last_result = self.cursor.execute("DELETE FROM `applications` WHERE id = ? ", [userid])
             self.connection.commit()
-        except sqlite3.Error as e:
-            print(f"Could not delete user with id: {userid}, exception in DB: {e}")  # @TODO LOGGING FFS
-            return False
         except sqlite3.OperationalError:
             print("The database has probably not yet seen any users, so it didnt create your table yet. Come back"
                   "when a user tried to register")
+            return False
+        except sqlite3.Error as e:
+            print(f"Could not delete user with id: {userid}, exception in DB: {e}")  # @TODO LOGGING FFS
             return False
         return True
 
@@ -127,12 +129,12 @@ class SQLitedb:
         try:
             self.last_result = self.cursor.execute("DELETE FROM `applications` WHERE username = ?", [username])
             self.connection.commit()
-        except sqlite3.Error as e:
-            print(f"Could not delete user {username}, exception in DB: {e}")  # @TODO LOGGING
-            return False
         except sqlite3.OperationalError:
             print("The database has probably not yet seen any users, so it didnt create your table yet. Come back"
                   "when a user tried to register")
+            return False
+        except sqlite3.Error as e:
+            print(f"Could not delete user {username}, exception in DB: {e}")  # @TODO LOGGING
             return False
         return True
 
