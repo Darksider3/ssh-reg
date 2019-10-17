@@ -5,10 +5,10 @@ import lib.CFG as CFG
 
 
 def checkUsernameCharacters(username: str):
-    if " " not in username and "_" not in username and username.isascii() and username.islower() and \
+    if " " not in username and "_" not in username and username.isascii() and username[:1].islower() and \
             not username[0].isnumeric():
         if not re.search(r"\W+", username):
-            if not re.search("[^a-z0-9]", username):
+            if not re.search("[^a-zA-Z0-9]", username):
                 return True
     return False
 
@@ -88,24 +88,27 @@ def checkImportFile(f):
     for row in reador:
         # if any of this fails move on to the next user, just print a relatively helpful message lel
         if not lib.validator.checkUsernameCharacters(row["username"]):
-            error_list += (f"Line {ln}: The username contains unsupported characters or starts with a number: '"
+            error_list += (f"Line {ln}: Username contains unsupported characters or starts with a number: '"
                            f"{row['username']}'.\n")
             valid = False
         if not lib.validator.checkUsernameLength(row["username"]):
-            error_list += f"Line {ln}: The username '{row['username']}' is either too long(>16) or short(<3)\n"
+            error_list += f"Line {ln}: Username '{row['username']}' is either too long(>16) or short(<3)\n"
             valid = False
         if not lib.validator.checkSSHKey(row["pubkey"]):
-            error_list += f"Line {ln}: Following SSH-Key from user '{row['username']}' isn't valid: '{row['pubkey']}'."\
+            error_list += f"Line {ln}: Following SSH-Key of user '{row['username']}' isn't valid: '{row['pubkey']}'."\
                           f"\n"
             valid = False
         if not lib.validator.checkEmail(row["email"]):
-            error_list += f"Line {ln}: The E-Mail address of user '{row['username']}' '{row['email']}' is not valid.\n"
+            error_list += f"Line {ln}: E-Mail address of user '{row['username']}' '{row['email']}' is not valid.\n"
             valid = False
         if not lib.validator.checkUserExists(row["username"]):
-            error_list += f"Line {ln}: The user '{row['username']}' already exists.\n"
+            error_list += f"Line {ln}: User '{row['username']}' already exists.\n"
             valid = False
         if not lib.validator.checkDatetimeFormat(row["timestamp"]):
-            error_list += f"Line {ln}: The timestamp '{row['timestamp']}' from user '{row['username']}' is invalid.\n"
+            error_list += f"Line {ln}: Timestamp '{row['timestamp']}' from user '{row['username']}' is invalid.\n"
+            valid = False
+        if int(row["status"]) > 1 or int(row["status"]) < 0:
+            error_list += f"Line {ln}: Status '{row['status']}' MUST be either 0 or 1.\n"
             valid = False
         ln += 1
     if valid:

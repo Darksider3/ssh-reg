@@ -77,7 +77,7 @@ def __checkSQLite(cursor, connection):
 
 def check_username(value):
     global VALID_USER
-    if " " in value or "_ " in value or not value.isascii() or not value.islower() or value[0].isnumeric():
+    if " " in value or "_ " in value or not value.isascii() or not value[:1].islower() or value[0].isnumeric():
         VALID_USER = False
         return False
     if re.search(r"\W+", value):
