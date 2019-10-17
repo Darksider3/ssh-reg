@@ -76,3 +76,39 @@ def checkDatetimeFormat(form: str):
     except ValueError:
         return False
     return True
+
+
+def checkImportFile(f):
+    import csv
+    reador = csv.DictReader(f)
+    error_list = str()
+    valid = True
+    ln = 1  # line number
+
+    for row in reador:
+        # if any of this fails move on to the next user, just print a relatively helpful message lel
+        if not lib.validator.checkUsernameCharacters(row["username"]):
+            error_list += (f"Line {ln}: The username contains unsupported characters or starts with a number: '"
+                           f"{row['username']}'.\n")
+            valid = False
+        if not lib.validator.checkUsernameLength(row["username"]):
+            error_list += f"Line {ln}: The username '{row['username']}' is either too long(>16) or short(<3)\n"
+            valid = False
+        if not lib.validator.checkSSHKey(row["pubkey"]):
+            error_list += f"Line {ln}: Following SSH-Key from user '{row['username']}' isn't valid: '{row['pubkey']}'."\
+                          f"\n"
+            valid = False
+        if not lib.validator.checkEmail(row["email"]):
+            error_list += f"Line {ln}: The E-Mail address of user '{row['username']}' '{row['email']}' is not valid.\n"
+            valid = False
+        if not lib.validator.checkUserExists(row["username"]):
+            error_list += f"Line {ln}: The user '{row['username']}' already exists.\n"
+            valid = False
+        if not lib.validator.checkDatetimeFormat(row["timestamp"]):
+            error_list += f"Line {ln}: The timestamp '{row['timestamp']}' from user '{row['username']}' is invalid.\n"
+            valid = False
+        ln += 1
+    if valid:
+        return True
+    else:
+        return error_list
