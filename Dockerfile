@@ -42,4 +42,4 @@ RUN touch /app/data/applications.log
 #RUN setfacl -R -m u:tilde:rwx /app/data/
 RUN chown -R tilde  /app/data
 RUN mkdir /app/user/.ssh
-CMD ["sh", "-c", " echo TILDE_CONF=$TILDE_CONF > /app/user/.ssh/environment && /usr/sbin/sshd -D"]
+CMD ["sh", "-c", " echo TILDE_CONF=$TILDE_CONF > /app/user/.ssh/environment && exec /usr/sbin/sshd -D"]
