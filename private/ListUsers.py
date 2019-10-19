@@ -9,7 +9,7 @@ class ListUsers:
     usersFetch = None
 
     def __init__(self, uap: bool = CFG.args.unapproved, app: bool = CFG.args.approved):
-        self.db = SQLitedb(CFG.REG_FILE)
+        self.db = SQLitedb(CFG.config['DEFAULT']['applications_db'])
         if uap:  # only unapproved users
             query = "SELECT * FROM `applications` WHERE status = '0'"
         elif app:  # Approved users

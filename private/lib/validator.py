@@ -34,7 +34,7 @@ def checkUserExists(username: str):
 
 def checkUserInDB(username: str):
     try:
-        L = lib.sqlitedb.SQLitedb(CFG.REG_FILE)
+        L = lib.sqlitedb.SQLitedb(CFG.config['DEFAULT']['applications_db'])
         fetched = L.safequery("SELECT * FROM 'applications' WHERE username = ?", tuple([username]))
         if fetched:
             return True

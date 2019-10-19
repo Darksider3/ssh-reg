@@ -4,7 +4,8 @@ import os
 import lib.UserExceptions
 
 
-def ImportFromFile(fname: str = CFG.args.file, db: str = CFG.REG_FILE, userids: tuple = tuple([])):
+def ImportFromFile(fname: str = CFG.args.file, db: str = CFG.config['DEFAULT']['applications_db'],
+                   userids: tuple = tuple([])):
     if not os.path.isfile(fname):
         print(f"File {fname} don't exist")
         return None
@@ -24,7 +25,7 @@ def ImportFromFile(fname: str = CFG.args.file, db: str = CFG.REG_FILE, userids: 
             import lib.sqlitedb
             import lib.System
             sysctl = lib.System.System()
-            sql = lib.sqlitedb.SQLitedb(CFG.REG_FILE)
+            sql = lib.sqlitedb.SQLitedb(CFG.config['DEFAULT']['applications_db'])
             reader = csv.DictReader(f)  # @TODO csv.Sniffer to compare? When yes, give force-accept option
             for row in reader:
                 if row["status"] == "1":

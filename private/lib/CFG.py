@@ -9,4 +9,3 @@ config.read(CONF_FILE)
 logging.basicConfig(format="%(asctime)s: %(message)s",
                     level=int(config['LOG_LEVEL']['log_level'])
                     )
-REG_FILE = config['DEFAULT']['applications_db']
