@@ -1,10 +1,10 @@
-import lib.CFG as CFG
+import lib.CFG
 import csv
 import os
 import lib.UserExceptions
 
 
-def ImportFromFile(fname: str = CFG.args.file, db: str = CFG.config['DEFAULT']['applications_db'],
+def ImportFromFile(fname: str = lib.CFG.args.file, db: str = lib.CFG.config['DEFAULT']['applications_db'],
                    userids: tuple = tuple([])):
     if not os.path.isfile(fname):
         print(f"File {fname} don't exist")
@@ -25,7 +25,7 @@ def ImportFromFile(fname: str = CFG.args.file, db: str = CFG.config['DEFAULT']['
             import lib.sqlitedb
             import lib.System
             sysctl = lib.System.System()
-            sql = lib.sqlitedb.SQLitedb(CFG.config['DEFAULT']['applications_db'])
+            sql = lib.sqlitedb.SQLitedb(lib.CFG.config['DEFAULT']['applications_db'])
             reader = csv.DictReader(f)  # @TODO csv.Sniffer to compare? When yes, give force-accept option
             for row in reader:
                 if row["status"] == "1":
@@ -64,11 +64,11 @@ def ImportFromFile(fname: str = CFG.args.file, db: str = CFG.config['DEFAULT']['
 
 if __name__ == "__main__":
     try:
-        if not CFG.args.Import:
+        if not lib.CFG.args.Import:
             print("Error, need the import flag")
-        if not CFG.args.file:
+        if not lib.CFG.args.file:
             print("Error, need the import file")
-            if not CFG.args.file:
+            if not lib.CFG.args.file:
                 print("You MUST set a CSV-file with the -f/--file flag that already exist")
                 exit(1)
         ImportFromFile()

@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
 
 from lib.sqlitedb import SQLitedb
-import lib.CFG as CFG
+import lib.CFG
 
 
 class ListUsers:
     db = None
     usersFetch = None
 
-    def __init__(self, uap: bool = CFG.args.unapproved, app: bool = CFG.args.approved):
-        self.db = SQLitedb(CFG.config['DEFAULT']['applications_db'])
+    def __init__(self, uap: bool = lib.CFG.args.unapproved, app: bool = lib.CFG.args.approved):
+        self.db = SQLitedb(lib.CFG.config['DEFAULT']['applications_db'])
         if uap:  # only unapproved users
             query = "SELECT * FROM `applications` WHERE status = '0'"
         elif app:  # Approved users
@@ -64,8 +64,8 @@ print(t.draw())
             ret += "%-4i| %-14s| %-25s| %-22s| %-8s | %-5i |\n" % (
                 user["id"], user["username"], user["email"], user["name"], user["timestamp"], user["status"]
             )
-        if CFG.args.file != "stdout":
-            with open(CFG.args.file, 'w') as f:
+        if lib.CFG.args.file != "stdout":
+            with open(lib.CFG.args.file, 'w') as f:
                 print(ret, file=f)
         else:
             print(ret)

@@ -1,7 +1,7 @@
 import re
 import pwd
 import lib.sqlitedb
-import lib.CFG as CFG
+import lib.CFG
 
 
 def checkUsernameCharacters(username: str):
@@ -34,8 +34,8 @@ def checkUserExists(username: str):
 
 def checkUserInDB(username: str):
     try:
-        L = lib.sqlitedb.SQLitedb(CFG.config['DEFAULT']['applications_db'])
-        fetched = L.safequery("SELECT * FROM 'applications' WHERE username = ?", tuple([username]))
+        ldb = lib.sqlitedb.SQLitedb(lib.CFG.config['DEFAULT']['applications_db'])
+        fetched = ldb.safequery("SELECT * FROM 'applications' WHERE username = ?", tuple([username]))
         if fetched:
             return True
     except lib.sqlitedb.sqlite3.Error as e:

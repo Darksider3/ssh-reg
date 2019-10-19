@@ -3,10 +3,7 @@
 import ListUsers
 import csv
 import io
-import lib.CFG as CFG
-import lib.validator
-import lib.UserExceptions
-import os
+import lib.CFG
 
 
 class Backup:
@@ -15,7 +12,7 @@ class Backup:
     dialect: str
     field_names: tuple
 
-    def __init__(self, fname: str = CFG.args.file, quoting: int = csv.QUOTE_NONNUMERIC, dialect: str = "excel"):
+    def __init__(self, fname: str = lib.CFG.args.file, quoting: int = csv.QUOTE_NONNUMERIC, dialect: str = "excel"):
         self.setFilename(fname)
         self.setQuoting(quoting)
         self.setDialect(dialect)
@@ -52,7 +49,7 @@ if __name__ == "__main__":
         L = ListUsers.ListUsers()
         fetch = L.getFetch()
         B = Backup()
-        if CFG.args.Import:
+        if lib.CFG.args.Import:
             print("For importing please call the ./Import.py file with the --Import flag")
         else:
             B.BackupToFile(fetch)
