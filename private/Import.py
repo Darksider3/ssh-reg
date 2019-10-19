@@ -1,11 +1,21 @@
-import lib.CFG
 import csv
 import os
+import configparser
 import lib.UserExceptions
+import lib.uis.config_ui  # dont go to default, just following -c flag
+
+ArgParser = lib.uis.config_ui.argparser
+ArgParser.description += "- Imports a CSV file consisting of user specific details to the database"
+ArgParser.add_argument('-f', '--file', default="stdout",
+                       type=str, help='Import from CSV file', required=True)
+ArgParser.add_argument('--Import', default=False, action="store_true",
+                       help="Import Users.", required=True)
+args = ArgParser.parse_args()
+config = configparser.ConfigParser()
+config.read(args.config)
 
 
-def ImportFromFile(fname: str = lib.CFG.args.file, db: str = lib.CFG.config['DEFAULT']['applications_db'],
-                   userids: tuple = tuple([])):
+def ImportFromFile(fname: str, db: str, userids: tuple = tuple([])):
     if not os.path.isfile(fname):
         print(f"File {fname} don't exist")
         return None
@@ -18,14 +28,14 @@ def ImportFromFile(fname: str = lib.CFG.args.file, db: str = lib.CFG.config['DEF
     try:
         with open(fname, 'r', newline='') as f:
             import lib.validator
-            err = lib.validator.checkImportFile(f)
+            sql = lib.sqlitedb.SQLitedb(db)
+            err = lib.validator.checkImportFile(fname, db)
             if err is not True:
                 print(err)
                 exit(0)
             import lib.sqlitedb
             import lib.System
             sysctl = lib.System.System()
-            sql = lib.sqlitedb.SQLitedb(lib.CFG.config['DEFAULT']['applications_db'])
             reader = csv.DictReader(f)  # @TODO csv.Sniffer to compare? When yes, give force-accept option
             for row in reader:
                 if row["status"] == "1":
@@ -64,14 +74,14 @@ def ImportFromFile(fname: str = lib.CFG.args.file, db: str = lib.CFG.config['DEF
 
 if __name__ == "__main__":
     try:
-        if not lib.CFG.args.Import:
+        if not args.Import:
             print("Error, need the import flag")
-        if not lib.CFG.args.file:
+        if not args.file:
             print("Error, need the import file")
-            if not lib.CFG.args.file:
+            if not args.file:
                 print("You MUST set a CSV-file with the -f/--file flag that already exist")
                 exit(1)
-        ImportFromFile()
+        ImportFromFile(args.file, config['DEFAULT']['applications_db'])
         exit(0)
     except KeyboardInterrupt as e:
         pass

@@ -44,4 +44,3 @@ class UsernameTooLong(User):
 
 class UsernameInvalidCharacters(User):
     pass
-

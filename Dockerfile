@@ -26,13 +26,6 @@ ENV TILDE_CONF="/app/data/applicationsconfig.ini"
 # private/{scripts, administrate.py}, public/{scripts, userapplications.py}, config/userapplicatonsconfig.ini
 #configs, logs, db
 COPY config/applicationsconfig.ini /app/data/applicationsconfig.ini
-
-# admin scripts
-COPY private/ /app/admin/
-
-# user accessible scripts
-# Make TILDE_ENV 
-COPY public/ /app/user/
 #SSH config into /etc :)
 COPY config/etc /etc
 
@@ -41,5 +34,11 @@ RUN touch /app/data/applications.log
 #  Doesnt work, @TODO why
 #RUN setfacl -R -m u:tilde:rwx /app/data/
 RUN chown -R tilde  /app/data
+# admin scripts
+COPY private/ /app/admin/
+
+# user accessible scripts
+# Make TILDE_ENV 
+COPY public/ /app/user/
 RUN mkdir /app/user/.ssh
 CMD ["sh", "-c", " echo TILDE_CONF=$TILDE_CONF > /app/user/.ssh/environment && exec /usr/sbin/sshd -D"]

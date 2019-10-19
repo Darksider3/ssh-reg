@@ -1,15 +1,21 @@
 #!/usr/bin/env python3
 
 from lib.sqlitedb import SQLitedb
-import lib.CFG
+import configparser
+import lib.uis.default as default_cmd  # Follows -u, -a, -f flags
+
+default_cmd.argparser.description += " - Lists Users from the Tilde database."
+args = default_cmd.argparser.parse_args()
+config = configparser.ConfigParser()
+config.read(args.config)
 
 
 class ListUsers:
     db = None
     usersFetch = None
 
-    def __init__(self, uap: bool = lib.CFG.args.unapproved, app: bool = lib.CFG.args.approved):
-        self.db = SQLitedb(lib.CFG.config['DEFAULT']['applications_db'])
+    def __init__(self, db: str, uap: bool = False, app: bool = True):
+        self.db = SQLitedb(db)
         if uap:  # only unapproved users
             query = "SELECT * FROM `applications` WHERE status = '0'"
         elif app:  # Approved users
@@ -33,7 +39,7 @@ class ListUsers:
 if __name__ == "__main__":
     try:
         ret = ""
-        L = ListUsers()
+        L = ListUsers(config['DEFAULT']['applications_db'], uap=args.unapproved, app=args.approved)
         fetch = L.getFetch()
         # @TODO MAYBE best solution: https://pypi.org/project/texttable/
         # examle:
@@ -64,8 +70,8 @@ print(t.draw())
             ret += "%-4i| %-14s| %-25s| %-22s| %-8s | %-5i |\n" % (
                 user["id"], user["username"], user["email"], user["name"], user["timestamp"], user["status"]
             )
-        if lib.CFG.args.file != "stdout":
-            with open(lib.CFG.args.file, 'w') as f:
+        if args.file != "stdout":
+            with open(args.file, 'w') as f:
                 print(ret, file=f)
         else:
             print(ret)

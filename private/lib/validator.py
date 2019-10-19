@@ -1,7 +1,6 @@
 import re
 import pwd
 import lib.sqlitedb
-import lib.CFG
 
 
 def checkUsernameCharacters(username: str):
@@ -21,20 +20,18 @@ def checkUsernameLength(username: str):
     return True
 
 
-def checkUserExists(username: str):
+def checkUserExists(username: str, db: str):
     try:
         pwd.getpwnam(username)
     except KeyError:
         return True  # User already exists
     else:
-        if checkUserInDB(username):
-            return True
         return False
 
 
-def checkUserInDB(username: str):
+def checkUserInDB(username: str, db: str):
     try:
-        ldb = lib.sqlitedb.SQLitedb(lib.CFG.config['DEFAULT']['applications_db'])
+        ldb = lib.sqlitedb.SQLitedb(db)
         fetched = ldb.safequery("SELECT * FROM 'applications' WHERE username = ?", tuple([username]))
         if fetched:
             return True
@@ -78,39 +75,39 @@ def checkDatetimeFormat(form: str):
     return True
 
 
-def checkImportFile(f):
-    import csv
-    reador = csv.DictReader(f)
+def checkImportFile(fname: str, db: str):
     error_list = str()
     valid = True
     ln = 1  # line number
-
-    for row in reador:
-        # if any of this fails move on to the next user, just print a relatively helpful message lel
-        if not lib.validator.checkUsernameCharacters(row["username"]):
-            error_list += (f"Line {ln}: Username contains unsupported characters or starts with a number: '"
-                           f"{row['username']}'.\n")
-            valid = False
-        if not lib.validator.checkUsernameLength(row["username"]):
-            error_list += f"Line {ln}: Username '{row['username']}' is either too long(>16) or short(<3)\n"
-            valid = False
-        if not lib.validator.checkSSHKey(row["pubkey"]):
-            error_list += f"Line {ln}: Following SSH-Key of user '{row['username']}' isn't valid: '{row['pubkey']}'."\
-                          f"\n"
-            valid = False
-        if not lib.validator.checkEmail(row["email"]):
-            error_list += f"Line {ln}: E-Mail address of user '{row['username']}' '{row['email']}' is not valid.\n"
-            valid = False
-        if not lib.validator.checkUserExists(row["username"]):
-            error_list += f"Line {ln}: User '{row['username']}' already exists.\n"
-            valid = False
-        if not lib.validator.checkDatetimeFormat(row["timestamp"]):
-            error_list += f"Line {ln}: Timestamp '{row['timestamp']}' from user '{row['username']}' is invalid.\n"
-            valid = False
-        if int(row["status"]) > 1 or int(row["status"]) < 0:
-            error_list += f"Line {ln}: Status '{row['status']}' MUST be either 0 or 1.\n"
-            valid = False
-        ln += 1
+    with open(fname, 'r', newline='') as f:
+        import csv
+        reador = csv.DictReader(f)
+        for row in reador:
+            # if any of this fails move on to the next user, just print a relatively helpful message lel
+            if not lib.validator.checkUsernameCharacters(row["username"]):
+                error_list += (f"Line {ln}: Username contains unsupported characters or starts with a number: '"
+                               f"{row['username']}'.\n")
+                valid = False
+            if not lib.validator.checkUsernameLength(row["username"]):
+                error_list += f"Line {ln}: Username '{row['username']}' is either too long(>16) or short(<3)\n"
+                valid = False
+            if not lib.validator.checkSSHKey(row["pubkey"]):
+                error_list += f"Line {ln}: Following SSH-Key of user '{row['username']}' isn't valid: '{row['pubkey']}'."\
+                              f"\n"
+                valid = False
+            if not lib.validator.checkEmail(row["email"]):
+                error_list += f"Line {ln}: E-Mail address of user '{row['username']}' '{row['email']}' is not valid.\n"
+                valid = False
+            if not lib.validator.checkUserExists(row["username"], db) or checkUserInDB(row["username"], db):
+                error_list += f"Line {ln}: User '{row['username']}' already exists.\n"
+                valid = False
+            if not lib.validator.checkDatetimeFormat(row["timestamp"]):
+                error_list += f"Line {ln}: Timestamp '{row['timestamp']}' from user '{row['username']}' is invalid.\n"
+                valid = False
+            if int(row["status"]) > 1 or int(row["status"]) < 0:
+                error_list += f"Line {ln}: Status '{row['status']}' MUST be either 0 or 1.\n"
+                valid = False
+            ln += 1
     if valid:
         return True
     else:

@@ -3,7 +3,14 @@
 import ListUsers
 import csv
 import io
-import lib.CFG
+import configparser
+import lib.uis.default as default_cmd  # Follows -u, -a, -f flags
+
+
+default_cmd.argparser.description += " - Backups Tilde Users to stdout or a file."
+args = default_cmd.argparser.parse_args()
+config = configparser.ConfigParser()
+config.read(args.config)
 
 
 class Backup:
@@ -12,7 +19,7 @@ class Backup:
     dialect: str
     field_names: tuple
 
-    def __init__(self, fname: str = lib.CFG.args.file, quoting: int = csv.QUOTE_NONNUMERIC, dialect: str = "excel"):
+    def __init__(self, fname: str, quoting: int = csv.QUOTE_NONNUMERIC, dialect: str = "excel"):
         self.setFilename(fname)
         self.setQuoting(quoting)
         self.setDialect(dialect)
@@ -46,13 +53,10 @@ class Backup:
 
 if __name__ == "__main__":
     try:
-        L = ListUsers.ListUsers()
+        L = ListUsers.ListUsers(config['DEFAULT']['applications_db'], uap=args.unapproved, app=args.approved)
         fetch = L.getFetch()
-        B = Backup()
-        if lib.CFG.args.Import:
-            print("For importing please call the ./Import.py file with the --Import flag")
-        else:
-            B.BackupToFile(fetch)
+        B = Backup(args.file)
+        B.BackupToFile(fetch)
         exit(0)
     except KeyboardInterrupt as e:
         pass
