@@ -1,7 +1,6 @@
-import argparse
 import configparser
 import logging
-import lib.default_cmd as default_cmd
+import lib.uis.default as default_cmd
 
 args = default_cmd.argparser.parse_args()
 CONF_FILE = args.config

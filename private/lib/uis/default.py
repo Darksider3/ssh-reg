@@ -1,10 +1,7 @@
-import argparse
-import configparser
-import logging
-import lib.cwd
-argparser = argparse.ArgumentParser(description='Tilde administration tools')
-argparser.add_argument('-c', '--config', default=lib.cwd.cwd,
-                       type=str, help='Path to configuration file', required=False)
+import lib.uis.config_ui
+
+argparser = lib.uis.config_ui.argparser
+
 # store_true just stores true when the command is supplied, so it doesn't need choices nor types
 argparser.add_argument('-u', '--unapproved', default=False, action="store_true",
                        help='only unapproved users. Default is only approved.', required=False)
