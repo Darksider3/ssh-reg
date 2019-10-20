@@ -80,11 +80,7 @@ class System:
             raise lib.UserExceptions.SSHDirUncreatable(f"Could not create {ssh_dir}: Exception: {e}")
 
         try:
-            with open(ssh_dir + "authorized_keys", "w") as f:
-                print(pubkey, file=f)
-                f.close()
-            os.chmod(ssh_dir + "authorized_keys", 0o700)  # directory is already 777?
-            os.chmod(ssh_dir, 0o700)  # directory is already 777?
+            self.write_ssh(pubkey, ssh_dir)
         except OSError as e:
             raise lib.UserExceptions.ModifyFilesystem(
                 f"Could not write and/or chmod 0700 {ssh_dir} or {ssh_dir}/authorized_keys, Exception: {e}")
@@ -98,6 +94,12 @@ class System:
         except KeyError as e:  # by PWD
             raise lib.UserExceptions.General(f"PWD can't find {username}: {e}")
         return True
+
+    def write_ssh(self, key: str, ssh_dir: str):
+        with open(ssh_dir + "authorized_keys", "w") as f:
+            print(key, file=f)
+            f.close()
+        os.chmod(ssh_dir + "authorized_keys", 0o700)  # we dont care about the directory here
 
     def lock_user_pw(self, username: str, cc: tuple = tuple(["usermod", "--lock"])) -> bool:
         """Lock a users password so it stays empty
