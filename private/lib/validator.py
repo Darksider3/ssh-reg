@@ -20,7 +20,7 @@ def checkUsernameLength(username: str):
     return True
 
 
-def checkUserExists(username: str, db: str):
+def checkUserExists(username: str):
     try:
         pwd.getpwnam(username)
     except KeyError:
@@ -98,7 +98,7 @@ def checkImportFile(fname: str, db: str):
             if not lib.validator.checkEmail(row["email"]):
                 error_list += f"Line {ln}: E-Mail address of user '{row['username']}' '{row['email']}' is not valid.\n"
                 valid = False
-            if not lib.validator.checkUserExists(row["username"], db) or checkUserInDB(row["username"], db):
+            if not lib.validator.checkUserExists(row["username"]) or checkUserInDB(row["username"], db):
                 error_list += f"Line {ln}: User '{row['username']}' already exists.\n"
                 valid = False
             if not lib.validator.checkDatetimeFormat(row["timestamp"]):
