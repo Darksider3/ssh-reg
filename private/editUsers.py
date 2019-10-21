@@ -1,6 +1,9 @@
 import configparser
 import lib.uis.config_ui  # only follow -c flag
 import lib.validator
+import lib.sqlitedb
+import lib.System
+import lib.UserExceptions
 import sqlite3
 
 lib.uis.config_ui.argparser.description += " - Edit Tilde Users"
@@ -43,9 +46,6 @@ if __name__ == "__main__":
         if not lib.validator.checkUserInDB(args.user, db):
             print(f"User {args.user} doesn't exist in the database.")
             exit(1)
-        import lib.sqlitedb
-        import lib.System
-        import lib.UserExceptions
         DB = lib.sqlitedb.SQLitedb(db)
         Sysctl = lib.System.System()
         if not DB:
@@ -66,17 +66,33 @@ if __name__ == "__main__":
                 try:
                     Sysctl.make_ssh_usable(args.user, args.sshpubkey)
                 except lib.UserExceptions.ModifyFilesystem as e:
-                    print(f"One action failed during writing the ssh key back into the authorization file")
+                    print(f"One action failed during writing the ssh key back to the authorization file. {e}")
             print(f"{args.user} updated successfully.")
 
         if args.name:
-            pass
+            if not lib.validator.checkName(args.name):
+                print(f"{args.name} is not a valid Name.")
+                exit(1)
+            try:
+                DB.safequery("UPDATE `applications` SET `name` =? WHERE `username` =?", tuple([args.name, args.user]))
+            except sqlite3.Error as e:
+                print(f"Couldn't write {args.name} to database: {e}")
+        if args.email:
+            if not lib.validator.checkEmail(args.email):
+                print(f"{args.email} is not a valid Mail address!")
+                exit(1)
+            try:
+                DB.safequery("UPDATE `applications` SET `email` =? WHERE `username` =?", tuple([args.email]))
+            except sqlite3.Error as e:
+                print(f"Couldn't write {args.email} to the database. {e}")
+        if args.status:
+            if args.status != 0 and args.status != 1:
+                print("Only 0 and 1 are valid status, where 1 is activated and 0 is unapproved.")
+                exit(0)
+            # @TODO: Get Users current status and purge him from the disk if neccessary
+            # @TODO: When the User had 0 and got 1 he should be created as well
         if args.username:
             print(f"{args.username}")
-        if args.email:
-            print(f"{args.email}")
-        if args.status:
-            print(f"{args.status}")
         exit(0)
     except KeyboardInterrupt as e:
         pass
