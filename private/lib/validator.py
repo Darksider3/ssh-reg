@@ -3,7 +3,7 @@ import pwd
 import lib.sqlitedb
 
 
-def checkUsernameCharacters(username: str):
+def checkUsernameCharacters(username: str) -> bool:
     if " " not in username and "_" not in username and username.isascii() and username[:1].islower() and \
             not username[0].isnumeric():
         if not re.search(r"\W+", username):
@@ -12,7 +12,7 @@ def checkUsernameCharacters(username: str):
     return False
 
 
-def checkUsernameLength(username: str):
+def checkUsernameLength(username: str) -> bool:
     if len(username) > 16:
         return False
     if len(username) < 3:
@@ -20,7 +20,7 @@ def checkUsernameLength(username: str):
     return True
 
 
-def checkUserExists(username: str):
+def checkUserExists(username: str) -> bool:
     try:
         pwd.getpwnam(username)
     except KeyError:
@@ -29,7 +29,7 @@ def checkUserExists(username: str):
         return False
 
 
-def checkUserInDB(username: str, db: str):
+def checkUserInDB(username: str, db: str) -> bool:
     try:
         ldb = lib.sqlitedb.SQLitedb(db)
         fetched = ldb.safequery("SELECT * FROM 'applications' WHERE username = ?", tuple([username]))
@@ -40,7 +40,7 @@ def checkUserInDB(username: str, db: str):
     return False
 
 
-def checkSSHKey(key: str):
+def checkSSHKey(key: str) -> bool:
     # taken from https://github.com/hashbang/provisor/blob/master/provisor/utils.py, all belongs to them! ;)
     import base64
     if len(key) > 8192 or len(key) < 80:
@@ -59,14 +59,14 @@ def checkSSHKey(key: str):
     return True
 
 
-def checkEmail(mail: str):
+def checkEmail(mail: str) -> bool:
     if not re.match("(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$)", mail):
         return False
     else:
         return True
 
 
-def checkDatetimeFormat(form: str):
+def checkDatetimeFormat(form: str) -> bool :
     import datetime
     try:
         datetime.datetime.strptime(form, "%Y-%m-%d %H:%M:%S")
@@ -75,7 +75,14 @@ def checkDatetimeFormat(form: str):
     return True
 
 
-def checkImportFile(fname: str, db: str):
+def checkName(name: str) -> bool:
+    if not re.match("\w+\s*\w", name):
+        return False
+    else:
+        return True
+
+
+def checkImportFile(fname: str, db: str) -> bool:
     error_list = str()
     valid = True
     ln = 1  # line number
@@ -84,6 +91,10 @@ def checkImportFile(fname: str, db: str):
         reador = csv.DictReader(f)
         for row in reador:
             # if any of this fails move on to the next user, just print a relatively helpful message lel
+            if not lib.validator.checkName(row["name"]):
+                error_list += f"Line{ln}: {row['name']} seems not legit. Character followed by character should be " \
+                              f"correct.\n"
+                valid = False
             if not lib.validator.checkUsernameCharacters(row["username"]):
                 error_list += (f"Line {ln}: Username contains unsupported characters or starts with a number: '"
                                f"{row['username']}'.\n")
