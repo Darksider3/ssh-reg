@@ -181,7 +181,7 @@ class System:
             return True
         else:
             ret = subprocess.call(cc)
-            if ret != 0:
+            if ret != 0 or ret != 6:
                 raise lib.UserExceptions.UnknownReturnCode(
                     f"Could not delete user with command {cc}. Return code: {ret}")
             return True
