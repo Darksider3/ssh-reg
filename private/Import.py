@@ -37,7 +37,7 @@ def ImportFromFile(fname: str, db: str, userids: tuple = tuple([])):
                 exit(0)
             import lib.sqlitedb
             import lib.System
-            sysctl = lib.System.System(db)
+            sysctl = lib.System.System()
             reader = csv.DictReader(f)  # @TODO csv.Sniffer to compare? When yes, give force-accept option
             for row in reader:
                 if row["status"] == "1":
