@@ -8,35 +8,34 @@ import lib.System
 import lib.UserExceptions
 import sqlite3
 
-lib.uis.config_ui.argparser.description += " - Edit Tilde Users"
-ArgParser = lib.uis.config_ui.argparser
-ArgParser.add_argument('--user', type=str,
-                       help='Tilde users name to edit', required=True)
-
-Mutually = ArgParser.add_mutually_exclusive_group()
-Mutually.add_argument('-r', '--remove', default=False, action="store_true",
-                      help='Remove an approved/unapproved User from the system(and DB). Effectively purges him.',
-                      required=False)
-Mutually.add_argument("--verify", default=True, action="store_false",
-                      help="Turns off value checks",
-                      required=False)
-
-ArgParser.add_argument('--sshpubkey', type=str, default=None,
-                       help="Stores the new given SSH-Key in given user", required=False)
-ArgParser.add_argument('--name', type=str, default=None,
-                       help="Sets the stored name of the given user")
-ArgParser.add_argument('--username', type=str, default=None,
-                       help="Rename given User")
-ArgParser.add_argument('--email', type=str, default=None,
-                       help="Set new email address for given user")
-ArgParser.add_argument('--status', type=int, default=None,
-                       help="Set status of given user")
-args = ArgParser.parse_args()
-config = configparser.ConfigParser()
-config.read(args.config)
-
 
 if __name__ == "__main__":
+    lib.uis.config_ui.argparser.description += " - Edit Tilde Users"
+    ArgParser = lib.uis.config_ui.argparser
+    ArgParser.add_argument('--user', type=str,
+                           help='Tilde users name to edit', required=True)
+
+    Mutually = ArgParser.add_mutually_exclusive_group()
+    Mutually.add_argument('-r', '--remove', default=False, action="store_true",
+                          help='Remove an approved/unapproved User from the system(and DB). Effectively purges him.',
+                          required=False)
+    Mutually.add_argument("--verify", default=True, action="store_false",
+                          help="Turns off value checks",
+                          required=False)
+
+    ArgParser.add_argument('--sshpubkey', type=str, default=None,
+                           help="Stores the new given SSH-Key in given user", required=False)
+    ArgParser.add_argument('--name', type=str, default=None,
+                           help="Sets the stored name of the given user")
+    ArgParser.add_argument('--username', type=str, default=None,
+                           help="Rename given User")
+    ArgParser.add_argument('--email', type=str, default=None,
+                           help="Set new email address for given user")
+    ArgParser.add_argument('--status', type=int, default=None,
+                           help="Set status of given user")
+    args = ArgParser.parse_args()
+    config = configparser.ConfigParser()
+    config.read(args.config)
     try:
         db = config['DEFAULT']['applications_db']
         if not args.sshpubkey and not args.name and not args.username and not args.email and args.status is None \

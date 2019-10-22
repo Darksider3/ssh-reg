@@ -6,16 +6,6 @@ import configparser
 import lib.UserExceptions
 import lib.uis.config_ui  # dont go to default, just following -c flag
 
-ArgParser = lib.uis.config_ui.argparser
-ArgParser.description += "- Imports a CSV file consisting of user specific details to the database"
-ArgParser.add_argument('-f', '--file', default="stdout",
-                       type=str, help='Import from CSV file', required=True)
-ArgParser.add_argument('--Import', default=False, action="store_true",
-                       help="Import Users.", required=True)
-args = ArgParser.parse_args()
-config = configparser.ConfigParser()
-config.read(args.config)
-
 
 def ImportFromFile(fname: str, db: str, userids: tuple = tuple([])):
     if not os.path.isfile(fname):
@@ -75,6 +65,16 @@ def ImportFromFile(fname: str, db: str, userids: tuple = tuple([])):
 
 
 if __name__ == "__main__":
+
+    ArgParser = lib.uis.config_ui.argparser
+    ArgParser.description += "- Imports a CSV file consisting of user specific details to the database"
+    ArgParser.add_argument('-f', '--file', default="stdout",
+                           type=str, help='Import from CSV file', required=True)
+    ArgParser.add_argument('--Import', default=False, action="store_true",
+                           help="Import Users.", required=True)
+    args = ArgParser.parse_args()
+    config = configparser.ConfigParser()
+    config.read(args.config)
     try:
         if not args.Import:
             print("Error, need the import flag")

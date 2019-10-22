@@ -7,12 +7,6 @@ import configparser
 import lib.uis.default as default_cmd  # Follows -u, -a, -f flags
 
 
-default_cmd.argparser.description += " - Backups Tilde Users to stdout or a file."
-args = default_cmd.argparser.parse_args()
-config = configparser.ConfigParser()
-config.read(args.config)
-
-
 class Backup:
     filename: str
     quoting: int
@@ -52,6 +46,10 @@ class Backup:
 
 
 if __name__ == "__main__":
+    default_cmd.argparser.description += " - Backups Tilde Users to stdout or a file."
+    args = default_cmd.argparser.parse_args()
+    config = configparser.ConfigParser()
+    config.read(args.config)
     try:
         L = ListUsers.ListUsers(config['DEFAULT']['applications_db'],
                                 unapproved=args.unapproved, approved=args.approved)
