@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import configparser
 import lib.uis.config_ui  # only follow -c flag
 import lib.validator
@@ -13,10 +15,8 @@ ArgParser.add_argument('--user', type=str,
 
 Mutually = ArgParser.add_mutually_exclusive_group()
 Mutually.add_argument('-r', '--remove', default=False, action="store_true",
-                      help='Remove an approved/unapproved User from the system. Effectively purges him.',
+                      help='Remove an approved/unapproved User from the system(and DB). Effectively purges him.',
                       required=False)
-Mutually.add_argument('-a', '--approve', default=False, action="store_true",
-                      help="Approve the given user", required=False)
 Mutually.add_argument("--verify", default=True, action="store_false",
                       help="Turns off value checks",
                       required=False)
@@ -40,7 +40,7 @@ if __name__ == "__main__":
     try:
         db = config['DEFAULT']['applications_db']
         if not args.sshpubkey and not args.name and not args.username and not args.email and args.status is None \
-                and not args.approve and not args.remove:
+                and not args.remove:
             print(f"Well, SOMETHING must be done with {args.user} ;-)")
             exit(1)
         if not lib.validator.checkUserInDB(args.user, db):
@@ -51,6 +51,8 @@ if __name__ == "__main__":
         if not DB:
             print("Couldn't establish connection to database")
             exit(1)
+
+        CurrentUser = DB.safequery("SELECT * FROM `applications` WHERE `username`=?", tuple([args.user]))[0]
         if args.sshpubkey:
             if not lib.validator.checkSSHKey(args.sshpubkey):
                 print(f"Pubkey {args.sshpubkey} isn't valid.")
@@ -89,21 +91,20 @@ if __name__ == "__main__":
             if args.status != 0 and args.status != 1:
                 print("Only 0 and 1 are valid status, where 1 is activated and 0 is unapproved.")
                 exit(0)
-            CurrentUser = DB.safequery("SELECT * FROM `applications` WHERE `username`=?", tuple([args.user]))[0]
             # just takes first result out of the dict
             if args.status == int(CurrentUser["status"]):
                 print(f"Old and new Status matches, didn't change")
             if args.status == 0 and int(CurrentUser["status"]) == 1:
                 try:
-                    Sysctl.removeUser(args.user)
-                except lib.UserExceptions.UnknownReturnCode as e:
-                    print(f"Couldn't remove {args.user} from the system, unknown return code: {e}")
-                    exit(1)
-                try:
                     DB.safequery("UPDATE `applications` SET `status` =? WHERE `id`=?",
                                  tuple([args.status, CurrentUser["id"]]))
                 except sqlite3.Error as e:
-                    print(f"Did purge from disk but couldnt update database for {args.user}")
+                    print(f"Couldn't update database entry for {args.user}, didn't touch the system")
+                    exit(1)
+                try:
+                    Sysctl.removeUser(args.user)
+                except lib.UserExceptions.UnknownReturnCode as e:
+                    print(f"Couldn't remove {args.user} from the system, unknown return code: {e}. DB is modified.")
                     exit(1)
             if args.status == 1 and int(CurrentUser["status"]) == 0:
                 try:
@@ -128,11 +129,7 @@ if __name__ == "__main__":
                     exit(1)
                 except lib.UserExceptions.ModifyFilesystem as MFS:
                     pass
-            # @TODO: Get Users current status and purge him from the disk if neccessary
-            # @TODO: When the User had 0 and got 1 he should be created as well
-            print(f"Success! {args.user}")
-        if args.username:
-            print(f"{args.username}")
+        print(f"Success! {args.user}")
         exit(0)
     except KeyboardInterrupt as e:
         pass
