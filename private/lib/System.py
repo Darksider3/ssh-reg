@@ -10,8 +10,9 @@ class System:
     dry = False
     create_command = []
     home = ""
+    db = None
 
-    def __init__(self, dryrun: bool = False, home: str = "/home/"):
+    def __init__(self, db: str, dryrun: bool = False, home: str = "/home/"):
         """Creates an objects. Can set dry run.
 
         :param dryrun: Run all command in a dry-run? When enabled, doesn't make any changes to the system (defaults to
@@ -21,6 +22,7 @@ class System:
         :type home: str
         """
 
+        self.db = db
         self.dry = dryrun
         if not home.endswith("/"):
             home += "/"
@@ -47,6 +49,7 @@ class System:
             rt = subprocess.call(cc)
             if rt != 0:
                 raise lib.UserExceptions.UserExistsAlready(f"User {username} exists already")
+            self._createUserIndex()
             return True
 
     def unregister(self, username: str):
@@ -184,7 +187,15 @@ class System:
             if ret != 0 and ret != 6:
                 raise lib.UserExceptions.UnknownReturnCode(
                     f"Could not delete user with command {cc}. Return code: {ret}")
+            self._createUserIndex()
             return True
+
+    def _createUserIndex(self, index_file: str = "/home/users.txt"):
+        import ListUsers
+        L = ListUsers.ListUsers(self.db, unapproved=False, approved=True)
+        user_list = L.outputaslist()
+        with open(index_file, "w") as f:
+            print(user_list, file=f)
 
 
 def AIO(username, pubkey, group="tilde"):

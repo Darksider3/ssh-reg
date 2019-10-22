@@ -47,7 +47,7 @@ if __name__ == "__main__":
             print(f"User {args.user} doesn't exist in the database.")
             exit(1)
         DB = lib.sqlitedb.SQLitedb(db)
-        Sysctl = lib.System.System()
+        Sysctl = lib.System.System(db)
         if not DB:
             print("Couldn't establish connection to database")
             exit(1)
