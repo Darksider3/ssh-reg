@@ -53,7 +53,8 @@ class Backup:
 
 if __name__ == "__main__":
     try:
-        L = ListUsers.ListUsers(config['DEFAULT']['applications_db'], uap=args.unapproved, app=args.approved)
+        L = ListUsers.ListUsers(config['DEFAULT']['applications_db'],
+                                unapproved=args.unapproved, approved=args.approved)
         fetch = L.getFetch()
         B = Backup(args.file)
         B.BackupToFile(fetch)
