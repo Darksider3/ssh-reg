@@ -50,6 +50,7 @@ class System:
         :raises:
             lib.UserExceptions.UserExistsAlready: when username specified already exists on the system
         """
+
         create_command = cc
         cc = create_command + tuple([username])
         if self.dry:
@@ -128,6 +129,7 @@ class System:
         :type ssh_dir: str
         :return: None
         """
+
         with open(ssh_dir + "authorized_keys", "w") as f:
             print(key, file=f)
             f.close()
@@ -218,10 +220,13 @@ class System:
             self.printTuple(cc)
             return True
         else:
-            ret = subprocess.call(cc)
-            if ret != 0 and ret != 6:
+            ret = subprocess.Popen(cc, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            ret.wait()  # wait for cc
+            stdio, err_io = ret.communicate()  # get stdout as well as stderr
+            if ret.returncode != 0 and ret.returncode != 6:  # userdel returns 6 when no mail dir was found but success
                 raise lib.UserExceptions.UnknownReturnCode(
-                    f"Could not delete user with command {cc}. Return code: {ret}")
+                    f"Could not delete user with command {cc}. Return code: {ret.returncode},"
+                    f" stdout/stderr: {stdio+err_io}")
             return True
 
 
