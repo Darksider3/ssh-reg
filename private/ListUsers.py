@@ -47,9 +47,9 @@ class ListUsers:
         pass  # see below why not implemented yet, texttable...
 
     def get_fetch(self) -> list:
-        """ Returns a complete fetch done by the sqlitedb-class
+        """ Returns a complete fetch done by the lib.sqlitedb-class
 
-        :return: Complete fetchall() in a dict-factory
+        :return: Complete fetchall() in a dict
         :rtype: list
         """
 
