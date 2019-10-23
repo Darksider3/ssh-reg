@@ -8,20 +8,26 @@ class System:
     """Class to interact with the system specifically to support our needs 0w0
     :Example:
     >>> from lib.System import System as System
-    >>> Sys_ctl = System(dryrun=True)
-    >>> Sys_ctl.register("Bob")
-    >>> Sys_ctl.lock_user_pw("Bob")
-    >>> Sys_ctl.add_to_usergroup("Bob")
-    >>> Sys_ctl.make_ssh_usable("Bob", "sshkey")
+    >>> Sys_ctl = System("Test", dryrun=True)
+    >>> Sys_ctl.register()
+    >>> Sys_ctl.lock_user_pw()
+    >>> Sys_ctl.add_to_usergroup()
+    >>> Sys_ctl.make_ssh_usable("sshkey")
     """
 
     dry: bool = False
     create_command = []
     home: str = ""
+    user: str
 
-    def __init__(self, dryrun: bool = False, home: str = "/home/"):
+    def setUser(self, username: str):
+        self.user = username
+
+    def __init__(self, username: str, dryrun: bool = False, home: str = "/home/"):
         """Creates an objects. Can set dry run.
 
+        :param username: Username to manipulate
+        :type username: str
         :param dryrun: Run all command in a dry-run? When enabled, doesn't make any changes to the system (defaults to
         false)
         :type dryrun: bool
@@ -37,12 +43,11 @@ class System:
         if not os.path.isdir(home):
             raise ValueError("home should be an existent directory...")
         self.home = home
+        self.user = username
 
-    def register(self, username: str, cc: tuple = tuple(["useradd", "-m"])) -> bool:
+    def register(self, cc: tuple = tuple(["useradd", "-m"])) -> bool:
         """Creates an local account for the given username
 
-        :param username: Username to create
-        :type username: str
         :param cc: Tuple with commands separated to execute on the machine. (defaults to useradd -m)
         :type cc: tuple
         :return: True, if worked, raises lib.UserExceptions.UserExistsAlready when not
@@ -52,31 +57,28 @@ class System:
         """
 
         create_command = cc
-        cc = create_command + tuple([username])
+        cc = create_command + tuple([self.user])
         if self.dry:
             self.printTuple(cc)
             return True
         elif not self.dry:
             rt = subprocess.call(cc)
             if rt != 0:
-                raise lib.UserExceptions.UserExistsAlready(f"User {username} exists already")
+                raise lib.UserExceptions.UserExistsAlready(f"User {self.user} exists already")
             return True
 
-    def unregister(self, username: str) -> bool:
+    def unregister(self) -> bool:
         """ Just an alias function for removeUser
 
-        :param username: username to remove
-        :type username: str
         :return: True, when success, False(or exception) when not
         :rtype: bool
         """
-        return self.remove_user(username)
 
-    def make_ssh_usable(self, username: str, pubkey: str, sshdir: str = ".ssh/") -> bool:
+        return self.remove_user()
+
+    def make_ssh_usable(self, pubkey: str, sshdir: str = ".ssh/") -> bool:
         """ Make SSH usable for our newly registered user
 
-        :param username: Username you want to affect with it, casually used directly after register()
-        :type username: str
         :param pubkey: Public SSH Key for the User you want accessible by SSH
         :type pubkey: str
         :param sshdir: Directory to write the authorized_keys File to. PWD is $HOME of said user. (defaults to ".ssh/")
@@ -95,7 +97,7 @@ class System:
             return True
         if not sshdir.endswith("/"):
             sshdir += "/"
-        ssh_dir = self.home + username + "/" + sshdir
+        ssh_dir = self.home + self.user + "/" + sshdir
         try:
             os.mkdir(ssh_dir)
         except FileExistsError:
@@ -109,14 +111,14 @@ class System:
             raise lib.UserExceptions.ModifyFilesystem(
                 f"Could not write and/or chmod 0700 {ssh_dir} or {ssh_dir}/authorized_keys, Exception: {e}")
         try:
-            pwdnam = pwd.getpwnam(username)
+            pwdnam = pwd.getpwnam(self.user)
             os.chown(ssh_dir, pwdnam[2], pwdnam[3])  # 2=>uid, 3=>gid
-            os.chown(ssh_dir + "authorized_keys", pwd.getpwnam(username)[2], pwd.getpwnam(username)[3])
+            os.chown(ssh_dir + "authorized_keys", pwd.getpwnam(self.user)[2], pwd.getpwnam(self.user)[3])
         except OSError as e:  # by os.chown
             raise lib.UserExceptions.ModifyFilesystem(
-                f"Could not chown {ssh_dir} and/or authorized_keys to {username} and their group, Exception: {e}",)
+                f"Could not chown {ssh_dir} and/or authorized_keys to {self.user} and their group, Exception: {e}",)
         except KeyError as e:  # by PWD
-            raise lib.UserExceptions.General(f"PWD can't find {username}: {e}")
+            raise lib.UserExceptions.General(f"PWD can't find {self.user}: {e}")
         return True
 
     @staticmethod
@@ -135,11 +137,9 @@ class System:
             f.close()
         os.chmod(ssh_dir + "authorized_keys", 0o700)  # we dont care about the directory here
 
-    def lock_user_pw(self, username: str, cc: tuple = tuple(["usermod", "--lock"])) -> bool:
+    def lock_user_pw(self, cc: tuple = tuple(["usermod", "--lock"])) -> bool:
         """Lock a users password so it stays empty
 
-        :param username: Username of the user which accounts password you want to lock
-        :type username: str
         :param cc: Commands to run in the subprocess to lock it down(defaults to usermod --lock)
         :type cc: tuple
         :rtype: bool
@@ -149,21 +149,19 @@ class System:
         """
 
         lock_command = cc
-        cc = lock_command + tuple([username])
+        cc = lock_command + tuple([self.user])
         if self.dry:
             self.printTuple(cc)
             return True
         elif not self.dry:
             rt = subprocess.call(cc)
             if rt != 0:
-                raise lib.UserExceptions.UnknownReturnCode(f"Could not lock user '{username}'; '{cc}' returned '{rt}'")
+                raise lib.UserExceptions.UnknownReturnCode(f"Could not lock user '{self.user}'; '{cc}' returned '{rt}'")
             return True
 
-    def add_to_usergroup(self, username: str, group: str = "tilde", cc: tuple = tuple(["usermod", "-a", "-G"])) -> bool:
+    def add_to_usergroup(self, group: str = "tilde", cc: tuple = tuple(["usermod", "-a", "-G"])) -> bool:
         """ Adds a given user to a given group
 
-        :param username: Username to add to your wanted group
-        :type username: str
         :param group: Groupname where you want to add your user to
         :type group: str
         :param cc: Commands to execute that adds your user to said specific group(defaults to usermod -a -G")
@@ -175,7 +173,7 @@ class System:
         """
 
         add_command = cc
-        cc = add_command + tuple([group, username])
+        cc = add_command + tuple([group, self.user])
         if self.dry:
             self.printTuple(cc)
             return True
@@ -183,7 +181,7 @@ class System:
             rt = subprocess.call(cc)
             if rt != 0:
                 raise lib.UserExceptions.UnknownReturnCode(
-                    f"Could not add user '{username}' to group '{group}' with command '{cc}', returned '{rt}'",)
+                    f"Could not add user '{self.user}' to group '{group}' with command '{cc}', returned '{rt}'",)
             return True
 
     @staticmethod
@@ -201,11 +199,9 @@ class System:
             pp += i + " "
         print(pp)
 
-    def remove_user(self, username: str, cc: tuple = tuple(["userdel", "-r"])) -> bool:
+    def remove_user(self, cc: tuple = tuple(["userdel", "-r"])) -> bool:
         """Removes the specified user from the system
 
-        :param username: The username you want to delete from the system.
-        :type username: str
         :param cc: Commands to execute to delete the user from the System(defaults to userdel -r)
         :type cc: tuple
         :return: True, if worked, raises lib.UserExceptions.UnknownReturnCode when not
@@ -215,7 +211,7 @@ class System:
         """
 
         remove_command = cc
-        cc = remove_command + tuple([username])
+        cc = remove_command + tuple([self.user])
         if self.dry:
             self.printTuple(cc)
             return True
@@ -231,19 +227,19 @@ class System:
 
 
 def AIO(username, pubkey, group="tilde"):
-    sys_ctl = System(dryrun=False)
-    sys_ctl.register(username)
-    sys_ctl.lock_user_pw(username)
-    sys_ctl.add_to_usergroup(username, group)
-    sys_ctl.make_ssh_usable(username, pubkey)
+    sys_ctl = System(username, dryrun=False)
+    sys_ctl.register()
+    sys_ctl.lock_user_pw()
+    sys_ctl.add_to_usergroup(group)
+    sys_ctl.make_ssh_usable(pubkey)
 
 
 if __name__ == "__main__":
     try:
-        S = System(dryrun=True)
-        S.register("dar")
-        S.lock_user_pw("dar")
-        S.add_to_usergroup("dar")
+        S = System("dar", dryrun=True)
+        S.register()
+        S.lock_user_pw()
+        S.add_to_usergroup()
         # if not S.make_ssh_usable("dar", "SSHpub"):
         #    print("Huh, error :shrug:")
         exit(0)
