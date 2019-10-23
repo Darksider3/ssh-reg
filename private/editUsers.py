@@ -52,6 +52,21 @@ if __name__ == "__main__":
             exit(1)
 
         CurrentUser = DB.safequery("SELECT * FROM `applications` WHERE `username`=?", tuple([args.user]))[0]
+        if args.remove:
+            print(f"Removing {args.user} from the system and the database...")
+            try:
+                DB.removeApplicantFromDBperUsername(args.user)
+                print(f"Purged from the DB")
+                if CurrentUser["status"] == 1:
+                    Sysctl.remove_user(args.user)
+                    print(f"Purged from the system")
+                else:
+                    print(f"{args.user} wasn't approved before, therefore not deleting from system itself.")
+            except lib.UserExceptions.General as e:
+                print(f"{e}")
+                exit(1)
+            print("Success.")
+            exit(0)
         if args.sshpubkey:
             if not lib.validator.checkSSHKey(args.sshpubkey):
                 print(f"Pubkey {args.sshpubkey} isn't valid.")
