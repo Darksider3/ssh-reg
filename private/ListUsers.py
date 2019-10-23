@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from lib.sqlitedb import SQLitedb
+from lib.sqlitedb import SQLiteDB
 import configparser
 import lib.uis.default as default_cmd  # Follows -u, -a, -f flags
 
@@ -20,7 +20,7 @@ class ListUsers:
         :type approved: bool
         """
 
-        self.db = SQLitedb(db)
+        self.db = SQLiteDB(db)
         if unapproved:  # only unapproved users
             query = "SELECT * FROM `applications` WHERE `status` = '0'"
         elif approved:  # Approved users

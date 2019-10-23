@@ -11,7 +11,7 @@ def dict_factory(cursor, row):
     return d
 
 
-class SQLitedb:
+class SQLiteDB:
     """SQLitedb handles EVERYTHING directly related to our Database."""
 
     db = ""
@@ -156,7 +156,7 @@ class SQLitedb:
 
 if __name__ == "__main__":
     try:
-        SQLitedb("bla.db")
+        SQLiteDB("bla.db")
         print("hi")
         exit(0)
     except KeyboardInterrupt:

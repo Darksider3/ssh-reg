@@ -31,7 +31,7 @@ def import_from_file(file_path: str, db: str, user_ids: tuple = tuple([])) -> bo
     try:
         with open(file_path, 'r', newline='') as f:
             import lib.Validator
-            sql = lib.sqlitedb.SQLitedb(db)
+            sql = lib.sqlitedb.SQLiteDB(db)
             err = lib.Validator.checkImportFile(file_path, db)
             if err is not True:
                 print(err)

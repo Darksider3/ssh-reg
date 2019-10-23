@@ -71,7 +71,7 @@ def checkUserInDB(username: str, db: str) -> bool:
     """
 
     try:
-        ldb = lib.sqlitedb.SQLitedb(db)
+        ldb = lib.sqlitedb.SQLiteDB(db)
         fetched = ldb.safequery("SELECT * FROM 'applications' WHERE username = ?", tuple([username]))
         if fetched:
             return True

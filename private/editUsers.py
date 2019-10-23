@@ -45,7 +45,7 @@ if __name__ == "__main__":
         if not lib.Validator.checkUserInDB(args.user, db):
             print(f"User {args.user} does not exist in the database.")
             exit(1)
-        DB = lib.sqlitedb.SQLitedb(db)
+        DB = lib.sqlitedb.SQLiteDB(db)
         sys_ctl = lib.System.System(args.user)
         if not DB:
             print("Could not establish connection to database")
