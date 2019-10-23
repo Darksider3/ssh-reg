@@ -2,12 +2,11 @@
 
 import configparser
 import lib.uis.config_ui  # only follow -c flag
-import lib.validator
+import lib.Validator
 import lib.sqlitedb
 import lib.System
 import lib.UserExceptions
 import sqlite3
-
 
 if __name__ == "__main__":
     lib.uis.config_ui.argparser.description += " - Edit Tilde Users"
@@ -43,7 +42,7 @@ if __name__ == "__main__":
             print(f"Well, SOMETHING must be done with {args.user} ;-)")
             exit(1)
         # --> --user
-        if not lib.validator.checkUserInDB(args.user, db):
+        if not lib.Validator.checkUserInDB(args.user, db):
             print(f"User {args.user} does not exist in the database.")
             exit(1)
         DB = lib.sqlitedb.SQLitedb(db)
@@ -72,26 +71,25 @@ if __name__ == "__main__":
 
         # --> --sshpubkey
         if args.sshpubkey:
-            if not lib.validator.checkSSHKey(args.sshpubkey):
+            if not lib.Validator.checkSSHKey(args.sshpubkey):
                 print(f"Pubkey '{args.sshpubkey}' isn't valid.")
                 exit(1)
             try:
                 DB.safequery("UPDATE `applications` SET `pubkey`=? WHERE `username`=?",
                              tuple([args.sshpubkey, args.user]))
+                CurrentUser = DB.safequery("SELECT * FROM `applications` WHERE `username` = ? ", tuple([args.user]))[0]
+                if int(CurrentUser["status"]) == 1:
+                    sys_ctl.make_ssh_usable(args.sshpubkey)
             except sqlite3.Error as e:
                 print(f"Something unexpected happened! {e}")
                 exit(1)
-            fetch = DB.safequery("SELECT * FROM `applications` WHERE `username` = ? ", tuple([args.user]))
-            if int(fetch[0]["status"]) == 1:
-                try:
-                    sys_ctl.make_ssh_usable(args.sshpubkey)
-                except lib.UserExceptions.ModifyFilesystem as e:
-                    print(f"One action failed during writing the ssh key back to the authorization file. {e}")
+            except lib.UserExceptions.ModifyFilesystem as e:
+                print(f"One action failed during writing the ssh key back to the authorization file. {e}")
             print(f"'{args.user}'s SSH-Key updated successfully.")
 
         # --> --name
         if args.name:
-            if not lib.validator.checkName(args.name):
+            if not lib.Validator.checkName(args.name):
                 print(f"'{args.name}' is not a valid Name.")
                 exit(1)
             try:
@@ -102,7 +100,7 @@ if __name__ == "__main__":
 
         # --> --email
         if args.email:
-            if not lib.validator.checkEmail(args.email):
+            if not lib.Validator.checkEmail(args.email):
                 print(f"'{args.email}' is not a valid Mail address!")
                 exit(1)
             try:
@@ -116,43 +114,35 @@ if __name__ == "__main__":
             if args.status != 0 and args.status != 1:
                 print("Only 0 and 1 are valid status, where 1 is activated and 0 is unapproved.")
                 exit(0)
+
             # just takes first result out of the dict
             if args.status == int(CurrentUser["status"]):
                 print(f"New and old status are the same.")
+
             if args.status == 0 and int(CurrentUser["status"]) == 1:
                 try:
                     DB.safequery("UPDATE `applications` SET `status` =? WHERE `id`=?",
                                  tuple([args.status, CurrentUser["id"]]))
+                    sys_ctl.remove_user()
                 except sqlite3.Error as e:
                     print(f"Could not update database entry for '{args.user}', did not touch the system")
                     exit(1)
-                try:
-                    sys_ctl.remove_user()
                 except lib.UserExceptions.UnknownReturnCode as e:
                     print(f"Could not remove '{args.user}' from the system, unknown return code: {e}. DB is modified.")
                     exit(1)
-
                 print(f"Successfully changed '{args.user}'s status to 0 and cleared from the system.")
+
             if args.status == 1 and int(CurrentUser["status"]) == 0:
                 try:
                     DB.safequery("UPDATE `applications` SET `status`=? WHERE `username`=?",
                                  tuple([args.status, args.user]))
+                    sys_ctl.aio_register(CurrentUser["pubkey"])
                 except sqlite3.Error as e:
                     print(f"Could not update Users status in database")
                     exit(1)
-                try:
-                    sys_ctl.aio_register(CurrentUser["pubkey"])
-                except lib.UserExceptions.UserExistsAlready as UEA:
-                    print(f"Somehow the user exists already on the system! {UEA}")
+                except lib.UserExceptions.General as ChangeUser:
+                    print(f"Some chain in the cattle just slipped away, my lord! {ChangeUser}")
                     exit(1)
-                except lib.UserExceptions.UnknownReturnCode as URC:
-                    print(f"Unknown return code: {URC}")
-                    exit(1)
-                except lib.UserExceptions.SSHDirUncreatable as SDU:
-                    print(f"Could not create ssh directory for {args.user}, exception: {SDU}")
-                    exit(1)
-                except lib.UserExceptions.ModifyFilesystem as MFS:
-                    pass
                 print(f"Successfully changed '{args.user}'s status to 1 and created on the system.")
         exit(0)
     except KeyboardInterrupt as e:

@@ -30,9 +30,9 @@ def import_from_file(file_path: str, db: str, user_ids: tuple = tuple([])) -> bo
     # noinspection PyBroadException
     try:
         with open(file_path, 'r', newline='') as f:
-            import lib.validator
+            import lib.Validator
             sql = lib.sqlitedb.SQLitedb(db)
-            err = lib.validator.checkImportFile(file_path, db)
+            err = lib.Validator.checkImportFile(file_path, db)
             if err is not True:
                 print(err)
                 exit(0)
@@ -46,18 +46,8 @@ def import_from_file(file_path: str, db: str, user_ids: tuple = tuple([])) -> bo
                         sys_ctl.setUser(row["username"])
                         sys_ctl.aio_register(row["pubkey"])
                         print(row['username'], "====> Registered.")
-                    except lib.UserExceptions.UserExistsAlready as UEA:
-                        pass  # @TODO User was determined to exists already, shouldn't happen but is possible
-                    except lib.UserExceptions.UnknownReturnCode as URC:
-                        pass  # @TODO Unknown Return Codes. Can happen in various function
-                    except lib.UserExceptions.SSHDirUncreatable as SDU:
-                        pass  # @TODO SSH Directory doesn't exist AND couldn't be created. Inherently wrong design!
-                    except lib.UserExceptions.ModifyFilesystem as MFS:
-                        pass  # @TODO Same as SSH Dir but more general, same problem: Wrong Permissions,
-                        # Missing Dirs etc
-                    except Exception as E:  # @TODO well less broad is hard to achieve Kappa
-                        print(E)
-                        continue
+                    except lib.UserExceptions.General as GeneralExcept:
+                        print(f"Something didnt work out! {GeneralExcept}")
                 elif row["status"] == "0":
                     print(row['username'] + " not approved, therefore not registered.")
                 try:
