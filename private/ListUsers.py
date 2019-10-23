@@ -10,6 +10,16 @@ class ListUsers:
     usersFetch = None
 
     def __init__(self, db: str, unapproved: bool = False, approved: bool = True):
+        """Constructs ListUsers
+
+        :param db: Database to access
+        :type db: str
+        :param unapproved: only List unapproved users
+        :type unapproved: bool
+        :param approved: only list approved users
+        :type approved: bool
+        """
+
         self.db = SQLitedb(db)
         if unapproved:  # only unapproved users
             query = "SELECT * FROM `applications` WHERE `status` = '0'"
@@ -20,6 +30,12 @@ class ListUsers:
         self.usersFetch = self.db.query(query)
 
     def output_as_list(self) -> str:
+        """Generates a string with one (approved) user per line and one newline at the end
+
+        :rtype: str
+        :return: String consisting with one(activated) user per line
+        """
+
         list_str: str = ""
         query = "SELECT `username` FROM `applications` WHERE `status` = '1' ORDER BY timestamp ASC"
         self.usersFetch = self.db.query(query)
@@ -30,12 +46,13 @@ class ListUsers:
     def prettyPrint(self) -> None:
         pass  # see below why not implemented yet, texttable...
 
-    def getFetch(self) -> list:
+    def get_fetch(self) -> list:
         """ Returns a complete fetch done by the sqlitedb-class
 
         :return: Complete fetchall() in a dict-factory
         :rtype: list
         """
+
         return self.usersFetch
 
 
@@ -75,7 +92,7 @@ if __name__ == "__main__":
         if args.list:
             ret = L.output_as_list()
         else:
-            fetch = L.getFetch()
+            fetch = L.get_fetch()
             ret += "ID %-1s| Username %-5s| Mail %-20s| Name %-17s| Registered %-8s | State |\n" % (
                 " ", " ", " ", " ", " "
             )

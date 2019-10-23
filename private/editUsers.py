@@ -101,7 +101,7 @@ if __name__ == "__main__":
                     print(f"Couldn't update database entry for {args.user}, didn't touch the system")
                     exit(1)
                 try:
-                    Sysctl.removeUser(args.user)
+                    Sysctl.remove_user(args.user)
                 except lib.UserExceptions.UnknownReturnCode as e:
                     print(f"Couldn't remove {args.user} from the system, unknown return code: {e}. DB is modified.")
                     exit(1)

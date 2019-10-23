@@ -5,11 +5,19 @@ import lib.UserExceptions
 
 
 class System:
-    """Class to interact with the system specifically to support our needs 0w0"""
+    """Class to interact with the system specifically to support our needs 0w0
+    :Example:
+    >>> from lib.System import System as System
+    >>> Sys_ctl = System(dryrun=True)
+    >>> Sys_ctl.register("Bob")
+    >>> Sys_ctl.lock_user_pw("Bob")
+    >>> Sys_ctl.add_to_usergroup("Bob")
+    >>> Sys_ctl.make_ssh_usable("Bob", "sshkey")
+    """
 
-    dry = False
+    dry: bool = False
     create_command = []
-    home = ""
+    home: str = ""
 
     def __init__(self, dryrun: bool = False, home: str = "/home/"):
         """Creates an objects. Can set dry run.
@@ -19,6 +27,8 @@ class System:
         :type dryrun: bool
         :param home: Standard directory to search for the home directories of your users(default is /home/)
         :type home: str
+        :raises:
+            ValueError: if homedir can not be found
         """
 
         self.dry = dryrun
@@ -37,6 +47,8 @@ class System:
         :type cc: tuple
         :return: True, if worked, raises lib.UserExceptions.UserExistsAlready when not
         :rtype: bool
+        :raises:
+            lib.UserExceptions.UserExistsAlready: when username specified already exists on the system
         """
         create_command = cc
         cc = create_command + tuple([username])
@@ -49,8 +61,15 @@ class System:
                 raise lib.UserExceptions.UserExistsAlready(f"User {username} exists already")
             return True
 
-    def unregister(self, username: str):
-        self.removeUser(username)
+    def unregister(self, username: str) -> bool:
+        """ Just an alias function for removeUser
+
+        :param username: username to remove
+        :type username: str
+        :return: True, when success, False(or exception) when not
+        :rtype: bool
+        """
+        return self.remove_user(username)
 
     def make_ssh_usable(self, username: str, pubkey: str, sshdir: str = ".ssh/") -> bool:
         """ Make SSH usable for our newly registered user
@@ -64,6 +83,10 @@ class System:
         :return: True, if worked, raises lib.UserExceptions.UnknownReturnCode, lib.UserExceptions.HomeDirExistsAlready
          or lib.UserExceptions.ModifyFilesystem when not
         :rtype: bool
+        :raises:
+            lib.UserExceptions.SSHDirUncreatable: if the ssh-dir couldnt be created nor exist
+            lib.UserExceptions.ModifyFilesystem: When chmod to .ssh and authorized_keys failed
+            lib.UserExceptions.General: if PWD cant find the specified user
         """
 
         if self.dry:
@@ -95,7 +118,16 @@ class System:
             raise lib.UserExceptions.General(f"PWD can't find {username}: {e}")
         return True
 
-    def write_ssh(self, key: str, ssh_dir: str):
+    @staticmethod
+    def write_ssh(key: str, ssh_dir: str) -> None:
+        """ Write SSH key to a specified directory(appends authorized_keys itself!)
+
+        :param key: Key to write
+        :type key: str
+        :param ssh_dir: SSH Directory to write to
+        :type ssh_dir: str
+        :return: None
+        """
         with open(ssh_dir + "authorized_keys", "w") as f:
             print(key, file=f)
             f.close()
@@ -110,6 +142,8 @@ class System:
         :type cc: tuple
         :rtype: bool
         :return: True, if worked, raises lib.UserExceptions.UnknownReturnCode when not
+        :raises:
+            lib.UserExceptions.UnknownReturnCode: When cc returns something else then 0
         """
 
         lock_command = cc
@@ -134,6 +168,8 @@ class System:
         :type cc: tuple
         :return: True, if worked, raises lib.UserExceptions.UnknownReturnCode when not
         :rtype bool
+        :raises:
+            lib.UserExceptions.UnknownReturnCode: if cc returned something else then 0
         """
 
         add_command = cc
@@ -163,7 +199,7 @@ class System:
             pp += i + " "
         print(pp)
 
-    def removeUser(self, username: str, cc: tuple = tuple(["userdel", "-r"])) -> bool:
+    def remove_user(self, username: str, cc: tuple = tuple(["userdel", "-r"])) -> bool:
         """Removes the specified user from the system
 
         :param username: The username you want to delete from the system.
@@ -172,6 +208,8 @@ class System:
         :type cc: tuple
         :return: True, if worked, raises lib.UserExceptions.UnknownReturnCode when not
         :rtype: bool
+        :raises:
+            lib.UserExceptions.UnknownReturnCode: When cc returns something else then 0 or 6
         """
 
         remove_command = cc
@@ -188,11 +226,11 @@ class System:
 
 
 def AIO(username, pubkey, group="tilde"):
-    syst = System(dryrun=False)
-    syst.register(username)
-    syst.lock_user_pw(username)
-    syst.add_to_usergroup(username, group)
-    syst.make_ssh_usable(username, pubkey)
+    sys_ctl = System(dryrun=False)
+    sys_ctl.register(username)
+    sys_ctl.lock_user_pw(username)
+    sys_ctl.add_to_usergroup(username, group)
+    sys_ctl.make_ssh_usable(username, pubkey)
 
 
 if __name__ == "__main__":

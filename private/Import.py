@@ -7,13 +7,24 @@ import lib.UserExceptions
 import lib.uis.config_ui  # dont go to default, just following -c flag
 
 
-def ImportFromFile(fname: str, db: str, userids: tuple = tuple([])):
+def import_from_file(fname: str, db: str, userids: tuple = tuple([])) -> bool:
+    """ Imports Users from a given CSV-file to the system and DB
+
+    :param fname:
+    :type fname: str
+    :param db: Path to the sqlite db
+    :type db: str
+    :param userids: FIXME: Tuple which userids should we write
+    :type userids: tuple
+    :return: True on success, False when not
+    :rtype: bool
+    """
     if not os.path.isfile(fname):
         print(f"File {fname} don't exist")
-        return None
+        return False
     if not os.path.isfile(db):
         print(f"The database file {db} don't exist")
-        return None
+        return False
     if userids:
         pass  # empty tuple means everything
     # noinspection PyBroadException
@@ -83,7 +94,7 @@ if __name__ == "__main__":
             if not args.file:
                 print("You MUST set a CSV-file with the -f/--file flag that already exist")
                 exit(1)
-        ImportFromFile(args.file, config['DEFAULT']['applications_db'])
+        import_from_file(args.file, config['DEFAULT']['applications_db'])
         exit(0)
     except KeyboardInterrupt as e:
         pass
