@@ -141,10 +141,7 @@ if __name__ == "__main__":
                     print(f"Could not update Users status in database")
                     exit(1)
                 try:
-                    sys_ctl.register()
-                    sys_ctl.lock_user_pw()
-                    sys_ctl.add_to_usergroup()
-                    sys_ctl.make_ssh_usable(CurrentUser["pubkey"])
+                    sys_ctl.aio_register(CurrentUser["pubkey"])
                 except lib.UserExceptions.UserExistsAlready as UEA:
                     print(f"Somehow the user exists already on the system! {UEA}")
                     exit(1)

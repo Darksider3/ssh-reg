@@ -45,6 +45,26 @@ class System:
         self.home = home
         self.user = username
 
+    def aio_register(self, pubkey, group="tilde"):
+        """ Executes all neccessary steps to create a user from itself. Raises ALOT of possible exceptions
+
+        :Note: CAREFULL! You MUST except the exceptions!
+        :param pubkey: Users public ssh key
+        :type pubkey: str
+        :param group: User-group. Defaults to tilde
+        :type group: str
+        :return: None
+        :raises:
+                lib.UserExceptions.UserExistsAlready: User Exists already on system
+                lib.UserExceptions.UnknownReturnCode: Unknown Return Code from useradd
+                lib.UserExceptions.SSHDirUncreatable: Users SSH Dir couldnt be created
+                lib.UserExceptions.ModifyFilesystem: Something with CHMOD failed
+        """
+        self.register()
+        self.lock_user_pw()
+        self.add_to_usergroup(group)
+        self.make_ssh_usable(pubkey)
+
     def register(self, cc: tuple = tuple(["useradd", "-m"])) -> bool:
         """Creates an local account for the given username
 
@@ -224,14 +244,6 @@ class System:
                     f"Could not delete user with command {cc}. Return code: {ret.returncode},"
                     f" stdout/stderr: {stdio+err_io}")
             return True
-
-
-def AIO(username, pubkey, group="tilde"):
-    sys_ctl = System(username, dryrun=False)
-    sys_ctl.register()
-    sys_ctl.lock_user_pw()
-    sys_ctl.add_to_usergroup(group)
-    sys_ctl.make_ssh_usable(pubkey)
 
 
 if __name__ == "__main__":

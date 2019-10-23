@@ -44,10 +44,7 @@ def import_from_file(file_path: str, db: str, user_ids: tuple = tuple([])) -> bo
                 if row["status"] == "1":
                     try:
                         sys_ctl.setUser(row["username"])
-                        sys_ctl.register()
-                        sys_ctl.lock_user_pw()
-                        sys_ctl.add_to_usergroup()
-                        sys_ctl.make_ssh_usable(row["pubkey"])
+                        sys_ctl.aio_register(row["pubkey"])
                         print(row['username'], "====> Registered.")
                     except lib.UserExceptions.UserExistsAlready as UEA:
                         pass  # @TODO User was determined to exists already, shouldn't happen but is possible
