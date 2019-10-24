@@ -9,7 +9,7 @@ class ListUsers:
     db = None
     usersFetch = None
 
-    def __init__(self, db: str, unapproved: bool = False, approved: bool = True):
+    def __init__(self, db: str, unapproved: bool = False, approved: bool = True, single_user: str = None):
         """Constructs ListUsers
 
         :param db: Database to access
@@ -25,6 +25,10 @@ class ListUsers:
             query = "SELECT * FROM `applications` WHERE `status` = '0'"
         elif approved:  # Approved users
             query = "SELECT * FROM `applications` WHERE `status` = '1'"
+        elif single_user is not None:
+            query = "SELECT * FROM `applications` WHERE `username` = ?"
+            self.usersFetch = self.db.safequery(query, tuple([single_user]))
+            return
         else:  # All users
             query = "SELECT * FROM `applications`"
         self.usersFetch = self.db.query(query)
@@ -80,16 +84,22 @@ print(t.draw())
 """
 if __name__ == "__main__":
     default_cmd.argparser.description += " - Lists Users from the Tilde database."
-    default_cmd.argparser.add_argument('--list', default=False, action="store_true",
-                                       help='Output a newline seperated list of users', required=False)
+    default_cmd.argparser.add_argument('--list-asc', default=False, action="store_true",
+                                       help='Output a newline seperated list of users', required=False, dest="args_asc")
+    default_cmd.argparser.add_argument('--user', default=None, type=str,
+                                       help="Just show a specific user by it's name", required=False)
     args = default_cmd.argparser.parse_args()
     config = configparser.ConfigParser()
     config.read(args.config)
 
     try:
         ret = ""
-        L = ListUsers(config['DEFAULT']['applications_db'], unapproved=args.unapproved, approved=args.approved)
-        if args.list:
+        if args.user is not None:
+            L = ListUsers(config['DEFAULT']['applications_db'], unapproved=args.unapproved, approved=args.approved,
+                          single_user=args.user)
+        else:
+            L = ListUsers(config['DEFAULT']['applications_db'], unapproved=args.unapproved, approved=args.approved)
+        if args.args_asc:
             ret = L.output_as_list()
         else:
             fetch = L.get_fetch()
