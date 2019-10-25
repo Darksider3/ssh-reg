@@ -136,7 +136,7 @@ if __name__ == "__main__":
                 try:
                     DB.safequery("UPDATE `applications` SET `status`=? WHERE `username`=?",
                                  tuple([args.status, args.user]))
-                    sys_ctl.aio_register(CurrentUser["pubkey"])
+                    sys_ctl.aio_approve(CurrentUser["pubkey"])
                 except sqlite3.Error as e:
                     print(f"Could not update Users status in database")
                     exit(1)

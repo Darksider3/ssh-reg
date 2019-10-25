@@ -44,7 +44,7 @@ def import_from_file(file_path: str, db: str, user_ids: tuple = tuple([])) -> bo
                 if row["status"] == "1":
                     try:
                         sys_ctl.setUser(row["username"])
-                        sys_ctl.aio_register(row["pubkey"])
+                        sys_ctl.aio_approve(row["pubkey"])
                         print(row['username'], "====> Registered.")
                     except lib.UserExceptions.General as GeneralExcept:
                         print(f"Something didnt work out! {GeneralExcept}")

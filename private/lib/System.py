@@ -45,7 +45,7 @@ class System:
         self.home = home
         self.user = username
 
-    def aio_register(self, pubkey, group="tilde"):
+    def aio_approve(self, pubkey, group="tilde"):
         """ Executes all neccessary steps to create a user from itself. Raises ALOT of possible exceptions
 
         :Note: CAREFULL! You MUST except the exceptions!
