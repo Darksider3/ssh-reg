@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 
-import ListUsers
+import configparser
 import csv
 import io
-import configparser
+
+import ListUsers
 import lib.uis.default as default_cmd  # Follows -u, -a, -f flags
 
 
@@ -115,17 +116,14 @@ if __name__ == "__main__":
     args = default_cmd.argparser.parse_args()
     config = configparser.ConfigParser()
     config.read(args.config)
-    try:
-        L = ListUsers.ListUsers(config['DEFAULT']['applications_db'],
-                                unapproved=args.unapproved, approved=args.approved)
-        fetch = L.get_fetch()
-        if fetch:
-            B = Backup(args.file)
-            B.setFieldnames(fetch[0].keys())  # sqlite3.row delivers its keys for us! SO NICE!
-            B.backup_to_file(fetch)
-        else:
-            print("nothing to backup!")
-            exit(1)
-        exit(0)
-    except KeyboardInterrupt as e:
-        pass
+    L = ListUsers.ListUsers(config['DEFAULT']['applications_db'],
+                            unapproved=args.unapproved, approved=args.approved)
+    fetch = L.get_fetch()
+    if fetch:
+        B = Backup(args.file)
+        B.setFieldnames(fetch[0].keys())  # sqlite3.row delivers its keys for us! SO NICE!
+        B.backup_to_file(fetch)
+    else:
+        print("nothing to backup!")
+        exit(1)
+    exit(0)

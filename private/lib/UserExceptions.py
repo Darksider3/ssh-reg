@@ -2,15 +2,21 @@ class General(Exception):
     pass
 
 
-class UnknownUser(General):
+class User(General):
     pass
+
+
+class UnknownUser(User):
+    def __init__(self, name):
+        Exception.__init__(self, f"Tried to perform action on unknown user '{name}'")
+
+
+class UserExistsAlready(User):
+    def __init__(self, name):
+        Exception.__init__(self, f"User '{name}' is already registered")
 
 
 class UnknownReturnCode(General):
-    pass
-
-
-class UserExistsAlready(UnknownReturnCode):
     pass
 
 
@@ -23,10 +29,6 @@ class SSHDirUncreatable(ModifyFilesystem):
 
 
 class SQLiteDatabaseDoesntExistYet(General):
-    pass
-
-
-class User(Exception):
     pass
 
 

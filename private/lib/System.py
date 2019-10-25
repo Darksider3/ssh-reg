@@ -1,6 +1,7 @@
 import os
-import subprocess
 import pwd
+import subprocess
+
 import lib.UserExceptions
 
 
@@ -136,7 +137,7 @@ class System:
             os.chown(ssh_dir + "authorized_keys", pwd.getpwnam(self.user)[2], pwd.getpwnam(self.user)[3])
         except OSError as e:  # by os.chown
             raise lib.UserExceptions.ModifyFilesystem(
-                f"Could not chown {ssh_dir} and/or authorized_keys to {self.user} and their group, Exception: {e}",)
+                f"Could not chown {ssh_dir} and/or authorized_keys to {self.user} and their group, Exception: {e}", )
         except KeyError as e:  # by PWD
             raise lib.UserExceptions.General(f"PWD can't find {self.user}: {e}")
         return True
@@ -201,7 +202,7 @@ class System:
             rt = subprocess.call(cc)
             if rt != 0:
                 raise lib.UserExceptions.UnknownReturnCode(
-                    f"Could not add user '{self.user}' to group '{group}' with command '{cc}', returned '{rt}'",)
+                    f"Could not add user '{self.user}' to group '{group}' with command '{cc}', returned '{rt}'", )
             return True
 
     @staticmethod
@@ -242,7 +243,7 @@ class System:
             if ret.returncode != 0 and ret.returncode != 6:  # userdel returns 6 when no mail dir was found but success
                 raise lib.UserExceptions.UnknownReturnCode(
                     f"Could not delete user with command {cc}. Return code: {ret.returncode},"
-                    f" stdout/stderr: {stdio+err_io}")
+                    f" stdout/stderr: {stdio + err_io}")
             return True
 
 

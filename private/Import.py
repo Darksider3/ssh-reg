@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 
+import configparser
 import csv
 import os
-import configparser
+
 import lib.UserExceptions
 import lib.uis.config_ui  # dont go to default, just following -c flag
 
@@ -74,15 +75,13 @@ if __name__ == "__main__":
     args = ArgParser.parse_args()
     config = configparser.ConfigParser()
     config.read(args.config)
-    try:
-        if not args.Import:
-            print("Error, need the import flag")
+
+    if not args.Import:
+        print("Error, need the import flag")
+    if not args.file:
+        print("Error, need the import file")
         if not args.file:
-            print("Error, need the import file")
-            if not args.file:
-                print("You MUST set a CSV-file with the -f/--file flag that already exist")
-                exit(1)
-        import_from_file(args.file, config['DEFAULT']['applications_db'])
-        exit(0)
-    except KeyboardInterrupt as e:
-        pass
+            print("You MUST set a CSV-file with the -f/--file flag that already exist")
+            exit(1)
+    import_from_file(args.file, config['DEFAULT']['applications_db'])
+    exit(0)

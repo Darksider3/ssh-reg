@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 
-from lib.sqlitedb import SQLiteDB
-import lib.uis.default as default_cmd  # Follows -u, -a, -f flags
-
-from typing import List  # Typing support!
-import sqlite3  # sqlite3.Row-Object
 import configparser
+import sqlite3  # sqlite3.Row-Object
+from typing import List  # Typing support!
+
+import lib.uis.default as default_cmd  # Follows -u, -a, -f flags
+from lib.sqlitedb import SQLiteDB
 
 
 class ListUsers:
@@ -46,7 +46,7 @@ class ListUsers:
         query = "SELECT `username` FROM `applications` WHERE `status` = '1' ORDER BY timestamp ASC"
         self.usersFetch = self.db.query(query)
         for users in self.usersFetch:
-            list_str += users["username"]+"\n"
+            list_str += users["username"] + "\n"
         return list_str
 
     def prettyPrint(self) -> None:
@@ -94,30 +94,27 @@ if __name__ == "__main__":
     config = configparser.ConfigParser()
     config.read(args.config)
 
-    try:
-        ret = ""
-        if args.user is not None:
-            L = ListUsers(config['DEFAULT']['applications_db'], unapproved=args.unapproved, approved=args.approved,
-                          single_user=args.user)
-        else:
-            L = ListUsers(config['DEFAULT']['applications_db'], unapproved=args.unapproved, approved=args.approved)
-        if args.args_asc:
-            ret = L.output_as_list()
-        else:
-            fetch = L.get_fetch()
-            ret += "ID %-1s| Username %-5s| Mail %-20s| Name %-17s| Registered %-8s | State |\n" % (
-                " ", " ", " ", " ", " "
+    ret = ""
+    if args.user is not None:
+        L = ListUsers(config['DEFAULT']['applications_db'], unapproved=args.unapproved, approved=args.approved,
+                      single_user=args.user)
+    else:
+        L = ListUsers(config['DEFAULT']['applications_db'], unapproved=args.unapproved, approved=args.approved)
+    if args.args_asc:
+        ret = L.output_as_list()
+    else:
+        fetch = L.get_fetch()
+        ret += "ID %-1s| Username %-5s| Mail %-20s| Name %-17s| Registered %-8s | State |\n" % (
+            " ", " ", " ", " ", " "
+        )
+        ret += 102 * "-" + "\n"
+        for user in fetch:
+            ret += "%-4i| %-14s| %-25s| %-22s| %-8s | %-5i |\n" % (
+                user["id"], user["username"], user["email"], user["name"], user["timestamp"], user["status"]
             )
-            ret += 102 * "-" + "\n"
-            for user in fetch:
-                ret += "%-4i| %-14s| %-25s| %-22s| %-8s | %-5i |\n" % (
-                    user["id"], user["username"], user["email"], user["name"], user["timestamp"], user["status"]
-                )
-        if args.file != "stdout":
-            with open(args.file, 'w') as f:
-                print(ret, file=f)
-        else:
-            print(ret)
-        exit(0)
-    except KeyboardInterrupt:
-        pass
+    if args.file != "stdout":
+        with open(args.file, 'w') as f:
+            print(ret, file=f)
+    else:
+        print(ret)
+    exit(0)

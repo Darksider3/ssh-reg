@@ -1,7 +1,8 @@
-import re
-import pwd
-import lib.sqlitedb
 import csv
+import pwd
+import re
+
+import lib.sqlitedb
 
 
 def checkUsernameCharacters(username: str) -> bool:
@@ -54,9 +55,8 @@ def checkUserExists(username: str) -> bool:
     try:
         pwd.getpwnam(username)
     except KeyError:
-        return True  # User already exists
-    else:
         return False
+    return True  # User already exists
 
 
 def checkUserInDB(username: str, db: str) -> bool:
@@ -203,7 +203,7 @@ def checkImportFile(path: str, db: str):
             if not lib.Validator.checkEmail(row["email"]):
                 errstr += f"Line {ln}: E-Mail address of user '{row['username']}' '{row['email']}' is not valid.\n"
                 valid = False
-            if not lib.Validator.checkUserExists(row["username"]) or checkUserInDB(row["username"], db):
+            if lib.Validator.checkUserExists(row["username"]) or checkUserInDB(row["username"], db):
                 errstr += f"Line {ln}: User '{row['username']}' already exists.\n"
                 valid = False
             if not lib.Validator.checkDatetimeFormat(row["timestamp"]):
