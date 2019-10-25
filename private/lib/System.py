@@ -85,7 +85,7 @@ class System:
         elif not self.dry:
             rt = subprocess.call(cc)
             if rt != 0:
-                raise lib.UserExceptions.UserExistsAlready(f"User {self.user} exists already")
+                raise lib.UserExceptions.UserExistsAlready(self.user)
             return True
 
     def unregister(self) -> bool:
