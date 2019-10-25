@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 import sqlite3
 from sys import stderr as stderr
+from typing import List  # Typing support!
 
 
 # create dictionary out of sqlite results
 def dict_factory(cursor, row):
-    d = {}
+    d: dict = {}
     for idx, col in enumerate(cursor.description):
         d[col[0]] = row[idx]
     return d
@@ -34,7 +35,7 @@ class SQLiteDB:
         except sqlite3.Error as e:
             print("Connection error: %s" % e, file=stderr)
 
-        self.cursor.row_factory = dict_factory  # every result will be a dict now
+        self.cursor.row_factory = sqlite3.Row  # every result will be a dict now
 
     def __del__(self):
         try:
@@ -43,7 +44,7 @@ class SQLiteDB:
         except sqlite3.Error as e:
             print("Couldn't gracefully close db: %s" % e, file=stderr)
 
-    def query(self, qq: str) -> list:
+    def query(self, qq: str) -> List[sqlite3.Row]:
         """Do a query and automagically get the fetched results in a list
         :param qq: Query to execute
         :type qq: str
@@ -71,14 +72,14 @@ class SQLiteDB:
 
     # we could try to utilise that ourselfs in a function. Be c a r e f u l, these values in the tuple MUST HAVE
     # THE RIGHT TYPE
-    def safequery(self, qq: str, deliver: tuple) -> list:
+    def safequery(self, qq: str, deliver: tuple) -> List[sqlite3.Row]:
         """ Shall handle any query that has user input in it as an alternative to self.query
         :param qq: Query to execute
         :type qq: str
         :param deliver: User inputs marked with the placeholder(`?`) in the str
         :type deliver: tuple
         :returns: A tuple(/list) consisting with any fetched results
-        :rtype: list
+        :rtype: List[sqlite3.Row]
         """
 
         try:
@@ -88,7 +89,7 @@ class SQLiteDB:
         except TypeError as e:
             print("Types in given tuple doesnt match to execute query \"%s\": %s" % (qq, e), file=stderr)
             self.last_result = []
-        except sqlite3.OperationalError as e:
+        except sqlite3.OperationalError:
             self._createTable()
             return self.safequery(qq, deliver)
         except sqlite3.Error as e:
@@ -138,7 +139,7 @@ class SQLiteDB:
             return False
         return True
 
-    def _createTable(self):
+    def _createTable(self) -> None:
         try:
             self.cursor.execute(
                 "CREATE TABLE IF NOT EXISTS applications("

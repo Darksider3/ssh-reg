@@ -96,7 +96,10 @@ class Backup:
         returner = io.StringIO()
         write_csv = csv.DictWriter(returner, fieldnames=self.field_names, quoting=self.quoting, dialect=self.dialect)
         write_csv.writeheader()
-        write_csv.writerows(fetched)
+        for row in fetched:
+            write_csv.writerow(dict(row))
+            # sqlite3.Row doesn't "easily" convert to a dict itself sadly, so just a quick help from us here
+            # it actually even delivers a list(sqlite3.Row) also, which doesnt make the life a whole lot easier
 
         if self.filename == "stdout":
             print(returner.getvalue())
@@ -116,8 +119,13 @@ if __name__ == "__main__":
         L = ListUsers.ListUsers(config['DEFAULT']['applications_db'],
                                 unapproved=args.unapproved, approved=args.approved)
         fetch = L.get_fetch()
-        B = Backup(args.file)
-        B.backup_to_file(fetch)
+        if fetch:
+            B = Backup(args.file)
+            B.setFieldnames(fetch[0].keys())  # sqlite3.row delivers its keys for us! SO NICE!
+            B.backup_to_file(fetch)
+        else:
+            print("nothing to backup!")
+            exit(1)
         exit(0)
     except KeyboardInterrupt as e:
         pass

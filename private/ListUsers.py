@@ -1,8 +1,11 @@
 #!/usr/bin/env python3
 
 from lib.sqlitedb import SQLiteDB
-import configparser
 import lib.uis.default as default_cmd  # Follows -u, -a, -f flags
+
+from typing import List  # Typing support!
+import sqlite3  # sqlite3.Row-Object
+import configparser
 
 
 class ListUsers:
@@ -25,13 +28,12 @@ class ListUsers:
             query = "SELECT * FROM `applications` WHERE `status` = '0'"
         elif approved:  # Approved users
             query = "SELECT * FROM `applications` WHERE `status` = '1'"
-        elif single_user is not None:
-            query = "SELECT * FROM `applications` WHERE `username` = ?"
-            self.usersFetch = self.db.safequery(query, tuple([single_user]))
-            return
         else:  # All users
             query = "SELECT * FROM `applications`"
         self.usersFetch = self.db.query(query)
+        if single_user is not None:
+            query = "SELECT * FROM `applications` WHERE `username` = ?"
+            self.usersFetch = self.db.safequery(query, tuple([single_user]))
 
     def output_as_list(self) -> str:
         """Generates a string with one (approved) user per line and one newline at the end
@@ -50,11 +52,11 @@ class ListUsers:
     def prettyPrint(self) -> None:
         pass  # see below why not implemented yet, texttable...
 
-    def get_fetch(self) -> list:
+    def get_fetch(self) -> List[sqlite3.Row]:
         """ Returns a complete fetch done by the lib.sqlitedb-class
 
-        :return: Complete fetchall() in a dict
-        :rtype: list
+        :return: Complete fetchall(). A List[sqlite3.Row] with dict-emulation objects.
+        :rtype: List[sqlite3.Row]
         """
 
         return self.usersFetch
