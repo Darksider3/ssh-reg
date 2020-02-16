@@ -1,30 +1,26 @@
 #!/usr/bin/env python3
 
-import re, configparser, logging, sqlite3, argparse
-from os import getcwd
+import argparse
+import configparser
+import logging
+import re
+import sqlite3
 from os import environ
+from os import getcwd
 from os import path as ospath
-import re, configparser, logging, sqlite3
-
 
 try:
     cwd = environ.get('TILDE_CONF')
     if cwd is None:
-        cwd=getcwd()+"/applicationsconfig.ini"
+        cwd = getcwd()+"/applicationsconfig.ini"
     else:
         if ospath.isfile(cwd) is False:
-            cwd=getcwd()+"/applicationsconfig.ini"
+            cwd = getcwd() + "/applicationsconfig.ini"
     # cwd is now either cwd/applicationsconfig or $TILDE_CONF
     argparser = argparse.ArgumentParser(description='interactive registration formular for tilde platforms')
     argparser.add_argument('-c', '--config', default=cwd, type=str, help='Config file', required=False)
     args = argparser.parse_args()
     CONF_FILE = args.config
-except:
-    # intended broad, @TODO check them all for errors instead of everything in one
-    logging.exception("Argumentparser-Exception: ")
-    exit(0)
-
-try:
     config = configparser.ConfigParser()
     config.read(CONF_FILE)
     logging.basicConfig(format="%(asctime)s: %(message)s", filename=config['DEFAULT']['log_file'],
@@ -46,7 +42,9 @@ def __createTable(cursor, connection):
             "id INTEGER PRIMARY KEY AUTOINCREMENT,"
             "username TEXT NOT NULL, email TEXT NOT NULL,"
             "name TEXT NOT NULL, pubkey TEXT NOT NULL,"
-            "timestamp DATETIME DEFAULT CURRENT_TIMESTAMP, status INTEGER NOT NULL DEFAULT 0);")
+            "timestamp DATETIME DEFAULT CURRENT_TIMESTAMP CONSTRAINT "
+            "timestamp_valid CHECK( timestamp IS strftime('%Y-%m-%d %H:%M:%S', timestamp))"
+            ",status INTEGER NOT NULL DEFAULT 0);")
         connection.commit()
     except sqlite3.Error as e:
         logging.exception("Couldn't create needed SQLite Table! Exception: %s" % e)
@@ -79,15 +77,24 @@ def __checkSQLite(cursor, connection):
 
 def check_username(value):
     global VALID_USER
+    if " " in value or "_ " in value or not value.isascii() or not value[:1].islower() or value[0].isnumeric():
+        VALID_USER = False
+        return False
+    if re.search(r"\W+", value):
+        VALID_USER = False
+        return False
     if len(value) < 3:
-        VALID_USER=False
+        VALID_USER = False
+        return False
+    if len(value) > 16:
+        VALID_USER = False
         return False
     try:
         from pwd import getpwnam
         getpwnam(value)
         VALID_USER = False
-    # intended broad
-    except Exception:
+    # everything from pwd throws an KeyError when the given user cannot be found
+    except KeyError:
         VALID_USER = True
         return True
     return False
@@ -98,34 +105,36 @@ def validate_pubkey(value):
     global VALID_SSH
     import base64
     if len(value) > 8192 or len(value) < 80:
-        VALID_SSH=False
+        VALID_SSH = False
         return False
 
     value = value.replace("\"", "").replace("'", "").replace("\\\"", "")
     value = value.split(' ')
-    types = [ 'ecdsa-sha2-nistp256', 'ecdsa-sha2-nistp384',
-              'ecdsa-sha2-nistp521', 'ssh-rsa', 'ssh-dss', 'ssh-ed25519' ]
+    types = ['ecdsa-sha2-nistp256', 'ecdsa-sha2-nistp384',
+             'ecdsa-sha2-nistp521', 'ssh-rsa', 'ssh-dss', 'ssh-ed25519']
     if value[0] not in types:
-        VALID_SSH=False
+        VALID_SSH = False
         return False
 
     try:
         base64.decodebytes(bytes(value[1], "utf-8"))
     except TypeError:
-        VALID_SSH=False
+        VALID_SSH = False
         return False
 
-    VALID_SSH=True
+    VALID_SSH = True
     return True
 
 
 def main():
     print("    ▗▀▖      \n▗▖▖ ▐  ▌ ▌▛▀▖\n▘▝▗▖▜▀ ▌ ▌▌ ▌\n  ▝▘▐  ▝▀▘▘ ▘")
 
-    username = input("Welcome to the ~.fun user application form!\n\nWhat is your desired username? [a-z0-9] allowed:\n")
+    username = input("Welcome to the ~.fun user application form!\n\n"
+                     "What is your desired username? [a-z0-9] allowed:\n")
     while (not re.match("[a-z]+[a-z0-9]", username)) or (not check_username(username)):
         username = input("Invalid Username, maybe it exists already?\nValid characters are only a-z and 0-9."
-                         "\nMake sure your username starts with a character and not a number."
+                         "\nMake sure your username starts with a character and not a number"
+                         " and is not larger than 16 characters."
                          "\nWhat is your desired username? [a-z0-9] allowed:\n")
 
     fullname = input("\nPlease enter your full name:\n")
@@ -154,8 +163,8 @@ def main():
     if re.match("[yY]", validation):
         print("Thank you for your application! We'll get in touch shortly. 🐧")
         try:
-            connection=sqlite3.connect(REG_FILE)
-            cursor=connection.cursor()
+            connection = sqlite3.connect(REG_FILE)
+            cursor = connection.cursor()
             __checkSQLite(cursor, connection)
             addtotable(cursor, connection, username, fullname, email, pubkey)
             connection.commit()
