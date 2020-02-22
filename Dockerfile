@@ -21,8 +21,15 @@ RUN useradd -Md /app/admin -s /app/admin/administrate.py admin
 RUN mkdir -p /var/run/sshd
 # expose SSH port
 EXPOSE 22
-
 ENV TILDE_CONF="/app/data/applicationsconfig.ini"
+RUN mkdir -p /app/data
+
+# private/{scripts, administrate.py}, public/{scripts, userapplications.py}, config/userapplicatonsconfig.ini
+#configs, logs, db
+COPY config/applicationsconfig.ini /app/data/applicationsconfig.ini
+#SSH config into /etc :)
+COPY config/etc /etc
+
 RUN touch /app/data/applications.sqlite
 RUN touch /app/data/applications.log
 #  Doesnt work, @TODO why
