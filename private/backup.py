@@ -1,4 +1,9 @@
 #!/usr/bin/env python3
+""" This module is thought to be the main point to export and import users.
+It's actually not really a module but a script ought to be run from the command line
+
+@TODO: Wording of module header...
+"""
 
 import configparser
 import csv
@@ -10,9 +15,10 @@ import lib.uis.default as default_cmd  # Follows -u, -a, -f flags
 
 class Backup:
     """Backups a Tilde database to an CSV file
+    @TODO: Move class into own file
 
     :Example:
-    >>> from Backup import Backup
+    >>> from backup import Backup
     >>> from ListUsers import ListUsers
     >>> L = ListUsers.ListUsers("/path/to/sqlite").get_fetch()
     >>> backup_db = Backup("stdout")
@@ -37,12 +43,13 @@ class Backup:
         :type dialect: str
         """
 
-        self.setFilename(output)
-        self.setQuoting(quoting)
-        self.setDialect(dialect)
-        self.setFieldnames(tuple(['id', 'username', 'email', 'name', 'pubkey', 'timestamp', 'status']))
+        self.set_filename(output)
+        self.set_quoting(quoting)
+        self.set_dialect(dialect)
+        self.set_field_names(tuple(['id', 'username', 'email', 'name',
+                                    'pubkey', 'timestamp', 'status']))
 
-    def setDialect(self, dialect: str) -> None:
+    def set_dialect(self, dialect: str) -> None:
         """ Set dialect for Object
 
         :param dialect: Dialect to set for Object
@@ -53,7 +60,7 @@ class Backup:
 
         self.dialect = dialect
 
-    def setQuoting(self, quoting: int) -> None:
+    def set_quoting(self, quoting: int) -> None:
         """ Set quoting in the CSV(must be supported by the CSV Module!)
 
         :param quoting: Quoting Integer given by csv.QUOTE_* constants
@@ -64,7 +71,7 @@ class Backup:
 
         self.quoting = quoting
 
-    def setFilename(self, filename: str) -> None:
+    def set_filename(self, filename: str) -> None:
         """ Sets Filename to output to
 
         :param filename: Filename to output to(set stdout for stdout)
@@ -75,8 +82,8 @@ class Backup:
 
         self.filename = filename
 
-    def setFieldnames(self, f_names: tuple) -> None:
-        """ Set fieldname to process
+    def set_field_names(self, f_names: tuple) -> None:
+        """ Set field name to process
 
         :param f_names: Fieldnames-Tuple
         :type f_names: tuple
@@ -95,20 +102,22 @@ class Backup:
         """
 
         returner = io.StringIO()
-        write_csv = csv.DictWriter(returner, fieldnames=self.field_names, quoting=self.quoting, dialect=self.dialect)
+        write_csv = csv.DictWriter(returner, fieldnames=self.field_names,
+                                   quoting=self.quoting, dialect=self.dialect)
         write_csv.writeheader()
         for row in fetched:
             write_csv.writerow(dict(row))
-            # sqlite3.Row doesn't "easily" convert to a dict itself sadly, so just a quick help from us here
-            # it actually even delivers a list(sqlite3.Row) also, which doesnt make the life a whole lot easier
+            # sqlite3.Row doesn't "easily" convert to a dict itself sadly,
+            # so just a quick help from us here
+            # it actually even delivers a list(sqlite3.Row) also,
+            # which doesnt make the life a whole lot easier
 
         if self.filename == "stdout":
             print(returner.getvalue())
-            return True
         else:
             with open(self.filename, "w") as f:
                 print(returner.getvalue(), file=f)
-            return True
+        return True
 
 
 if __name__ == "__main__":
@@ -121,7 +130,7 @@ if __name__ == "__main__":
     fetch = L.get_fetch()
     if fetch:
         B = Backup(args.file)
-        B.setFieldnames(fetch[0].keys())  # sqlite3.row delivers its keys for us! SO NICE!
+        B.set_field_names(fetch[0].keys())  # sqlite3.row delivers its keys for us! SO NICE!
         B.backup_to_file(fetch)
     else:
         print("nothing to backup!")
