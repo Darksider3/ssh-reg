@@ -84,7 +84,7 @@ if __name__ == "__main__":
         if not os.path.isfile(args.file):
             print(f"File {args.file} doesnt exist")
             exit(1)
-        sanitized = lib.Validator.checkImportFile(args.file, config['DEFAULT']['applications_db'])
+        sanitized = lib.Validator.checkImportFile(args.file, config['DEFAULT']['applications_db'], False)
         if sanitized is not True:
             print(sanitized)
         else:
