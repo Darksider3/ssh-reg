@@ -126,7 +126,7 @@ if __name__ == "__main__":
     config = configparser.ConfigParser()
     config.read(args.config)
     L = ListUsers(config['DEFAULT']['applications_db'],
-                            unapproved=args.unapproved, approved=args.approved)
+                  unapproved=args.unapproved, approved=args.approved)
     fetch = L.get_fetch()
     if fetch:
         B = Backup(args.file)
