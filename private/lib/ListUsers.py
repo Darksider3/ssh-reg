@@ -32,7 +32,7 @@ class ListUsers:
         self.users_fetch = self.db.query(query)
         if single_user is not None:
             query = "SELECT * FROM `applications` WHERE `username` = ?"
-            self.users_fetch = self.db.safequery(query, tuple([single_user]))
+            self.users_fetch = self.db.safe_query(query, tuple([single_user]))
 
     def output_as_list(self) -> str:
         """Generates a string with one (approved) single_user per line and one newline at the end

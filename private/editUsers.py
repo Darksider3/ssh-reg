@@ -50,7 +50,7 @@ if __name__ == "__main__":
     if not DB:
         print("Could not establish connection to database")
         exit(1)
-    CurrentUser = DB.safequery("SELECT * FROM `applications` WHERE `username`=?", tuple([args.user]))[0]
+    CurrentUser = DB.safe_query("SELECT * FROM `applications` WHERE `username`=?", tuple([args.user]))[0]
 
     # --> --remove
     if args.remove:
@@ -75,9 +75,9 @@ if __name__ == "__main__":
             print(f"Pubkey '{args.sshpubkey}' isn't valid.")
             exit(1)
         try:
-            DB.safequery("UPDATE `applications` SET `pubkey`=? WHERE `username`=?",
-                         tuple([args.sshpubkey, args.user]))
-            CurrentUser = DB.safequery("SELECT * FROM `applications` WHERE `username` = ? ", tuple([args.user]))[0]
+            DB.safe_query("UPDATE `applications` SET `pubkey`=? WHERE `username`=?",
+                          tuple([args.sshpubkey, args.user]))
+            CurrentUser = DB.safe_query("SELECT * FROM `applications` WHERE `username` = ? ", tuple([args.user]))[0]
             if int(CurrentUser["status"]) == 1:
                 sys_ctl.make_ssh_usable(args.sshpubkey)
         except sqlite3.Error as e:
@@ -93,7 +93,7 @@ if __name__ == "__main__":
             print(f"'{args.name}' is not a valid Name.")
             exit(1)
         try:
-            DB.safequery("UPDATE `applications` SET `name` =? WHERE `username` =?", tuple([args.name, args.user]))
+            DB.safe_query("UPDATE `applications` SET `name` =? WHERE `username` =?", tuple([args.name, args.user]))
         except sqlite3.Error as e:
             print(f"Could not write '{args.name}' to database: {e}")
         print(f"'{args.user}'s Name changed to '{args.name}'.")
@@ -104,7 +104,7 @@ if __name__ == "__main__":
             print(f"'{args.email}' is not a valid Mail address!")
             exit(1)
         try:
-            DB.safequery("UPDATE `applications` SET `email` =? WHERE `username` =?", tuple([args.email]))
+            DB.safe_query("UPDATE `applications` SET `email` =? WHERE `username` =?", tuple([args.email]))
         except sqlite3.Error as e:
             print(f"Could not write '{args.email}' to the database. {e}")
         print(f"'{args.user}' Mail changed to '{args.email}'.")
@@ -121,8 +121,8 @@ if __name__ == "__main__":
 
         if args.status == 0 and int(CurrentUser["status"]) == 1:
             try:
-                DB.safequery("UPDATE `applications` SET `status` =? WHERE `id`=?",
-                             tuple([args.status, CurrentUser["id"]]))
+                DB.safe_query("UPDATE `applications` SET `status` =? WHERE `id`=?",
+                              tuple([args.status, CurrentUser["id"]]))
                 sys_ctl.remove_user()
             except sqlite3.Error as e:
                 print(f"Could not update database entry for '{args.user}', did not touch the system")
@@ -134,8 +134,8 @@ if __name__ == "__main__":
 
         if args.status == 1 and int(CurrentUser["status"]) == 0:
             try:
-                DB.safequery("UPDATE `applications` SET `status`=? WHERE `username`=?",
-                             tuple([args.status, args.user]))
+                DB.safe_query("UPDATE `applications` SET `status`=? WHERE `username`=?",
+                              tuple([args.status, args.user]))
                 sys_ctl.aio_approve(CurrentUser["pubkey"])
             except sqlite3.Error as e:
                 print(f"Could not update Users status in database")

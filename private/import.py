@@ -54,7 +54,7 @@ def import_from_file(file_path: str, database_file: str, user_ids: tuple = tuple
                 elif row["status"] == "0":
                     print(row['username'] + " not approved, therefore not registered.")
                 try:
-                    sql.safequery(
+                    sql.safe_query(
                         "INSERT INTO `applications` (username, name, timestamp, email, pubkey, status) "
                         "VALUES (?,?,?,?,?,?)", tuple([row["username"], row["name"], row["timestamp"],
                                                        row["email"], row["pubkey"], row["status"]]))
