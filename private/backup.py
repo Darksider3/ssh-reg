@@ -9,7 +9,7 @@ import configparser
 import csv
 import io
 
-import ListUsers
+from lib.ListUsers import ListUsers
 import lib.uis.default as default_cmd  # Follows -u, -a, -f flags
 
 
@@ -20,7 +20,7 @@ class Backup:
     :Example:
     >>> from backup import Backup
     >>> from ListUsers import ListUsers
-    >>> L = ListUsers.ListUsers("/path/to/sqlite").get_fetch()
+    >>> L = ListUsers.list_users("/path/to/sqlite").get_fetch()
     >>> backup_db = Backup("stdout")
     >>> backup_db.backup_to_file(L)
     CSV-Separated list with headers in first row
@@ -72,9 +72,9 @@ class Backup:
         self.quoting = quoting
 
     def set_filename(self, filename: str) -> None:
-        """ Sets Filename to output to
+        """ Sets Filename to OUTPUT to
 
-        :param filename: Filename to output to(set stdout for stdout)
+        :param filename: Filename to OUTPUT to(set stdout for stdout)
         :type filename: str
         :return: None
         :rtype: None
@@ -125,7 +125,7 @@ if __name__ == "__main__":
     args = default_cmd.argparser.parse_args()
     config = configparser.ConfigParser()
     config.read(args.config)
-    L = ListUsers.ListUsers(config['DEFAULT']['applications_db'],
+    L = ListUsers(config['DEFAULT']['applications_db'],
                             unapproved=args.unapproved, approved=args.approved)
     fetch = L.get_fetch()
     if fetch:
