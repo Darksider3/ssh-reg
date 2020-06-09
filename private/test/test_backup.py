@@ -1,32 +1,33 @@
-import sys
-
-sys.path.append('..')
-
+import os
 import unittest
-from ListUsers import ListUsers
+import sys
+import csv
 import backup
-
+sys.path.append('..')
+from lib.ListUsers import ListUsers
+import test.testcfg as testcfg
 
 class TestBackup(unittest.TestCase):
-    test_csv: str = "test/testbackup.csv"
-    test_db: str = "./test/applications.sqlite"
 
     def setUp(self):
         try:
-            self.fetch = ListUsers(self.test_db, unapproved=False, approved=False).get_fetch()
-            self.Backup = backup.Backup(self.test_csv)
+            self.fetch = ListUsers(testcfg.test_db, unapproved=False, approved=False).get_fetch()
+            self.Backup = backup.Backup(testcfg.test_backup_csv)
         except Exception as general_setup:
             self.fail(f"Failed setup already! {general_setup}")
 
     def test_set_dialect(self):
-        pass
+        self.Backup.set_dialect("excel")
+        self.assertEqual(self.Backup.dialect, "excel")
 
     def test_set_quoting(self):
-        pass
+        self.Backup.set_quoting(csv.QUOTE_NONNUMERIC)
+        self.assertEqual(self.Backup.quoting, csv.QUOTE_NONNUMERIC)
 
     def test_set_filename(self):
-        self.Backup.set_filename(self.test_csv)
-        self.assertEqual(self.Backup.filename, self.test_csv)
+        self.Backup.set_filename(testcfg.test_backup_csv)
+        self.assertEqual(self.Backup.filename, testcfg.test_backup_csv)
+        self.Backup.set_field_names(self.fetch[0].keys())
 
     def test_set_field_names(self):
         # @TODO: Dynamic! Having a test scheme from which we setup our test is beneficial here, also values
@@ -36,7 +37,11 @@ class TestBackup(unittest.TestCase):
 
     def test_backup_to_file(self):
         try:
+            self.Backup.set_field_names(self.fetch[0].keys())
             self.Backup.backup_to_file(self.fetch)
+            self.assertTrue(os.path.exists(testcfg.test_backup_csv),
+                            "Assert True that file exists and was written")
+            os.unlink(os.path.realpath(testcfg.test_backup_csv))
         except IOError as io_error:
             self.fail(io_error)
 
