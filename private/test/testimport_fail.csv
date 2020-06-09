@@ -1,0 +1,14 @@
+"id","username","email","name","pubkey","timestamp","status"
+1,"darksider3","tester@testentry.de","Tester sagtHallo","ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDFsOkf8NTRY++69dCMO8hJslNCWIJMhgHxwN4vSPUG2 drip@kvn.home.steinke.pro","2019-10-12 11:19:52",6
+2,"Darksider2","notapproved@tester.com","Unapproved Tester","Unknown","2019-10-12 11:20:34",6
+3,"darksider4","penis@cocksucker.email","Luca","ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDFsOkf8NTRY++69dCMO8hJslNCWIJMhgHxwN4vSPUG2 drip@kvn.home.steinke.pro",12345,1
+4,"darksider5","pissfotze@example.com","empty","ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOf5ZbbXbTyVD1WN0XES3lPG9jXGoYxcKhXPBq5D3ZwG test@example-com","1970-00-00",0
+7,"3kliksphilip","test@test",,"ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIjb0JardY8xeB5YwIPn9Z0HSEPfy3wEIB90f/rEgy33 test@example.com","11.10.20 20:20",1
+8,"root","mailtest@tester.testets.test","Tester sagtHallo","ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBiR1xpeeBuKALRi1czgVbyPbGW7Y6It72PRULFDhiFM drip@kvn.home.steinke.pro","10.12.23 13:37",0
+6213663,"4kliksphilip",,"Testtest","test@example.com nokey","12.10.19 01:15",1
+11,"name mitleerzeichen","test","Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua.","Unknown","1970-00-00",-7
+8,"$HOME","wurst",,"invalid",1,3
+12,"loremipsumdolorsitametconsetetursadipisceoraetorbi","eierkopf",,";;--",2,4
+16,"darksider3","penis@darksider3.de",,,1970,200
+-1,"darksider17","haha@lol.nigge.rs",,,"penis",6
+
