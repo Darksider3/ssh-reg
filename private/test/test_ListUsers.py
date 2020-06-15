@@ -5,9 +5,6 @@ import os
 from lib.ListUsers import ListUsers
 sys.path.append('..')
 
-f = open(os.devnull, 'w')
-sys.stdout = f
-
 
 class TestListUsers(unittest.TestCase):
     def setUp(self) -> None:
@@ -23,7 +20,6 @@ class TestListUsers(unittest.TestCase):
                            "Newlines in OUTPUT doesn't exceed minimum of at least "
                            f"{testcfg.ListUsers_output_newlines} "
                            "lines!")
-        print(out)
 
     def test_pretty_print(self):
         # wont going to compare the stdout sorry very much
@@ -36,7 +32,7 @@ class TestListUsers(unittest.TestCase):
                            testcfg.ListUsers_fetch_size_min, "fetch is NOT greater than"
                                                              "the configured fetch minimum")
         try:
-            print(fetch[0])
+            fetch[0]
         except (KeyError, IOError) as suddenly_not_there:
             self.fail(f"Expected fetch to have at least one argument! {suddenly_not_there}")
 
