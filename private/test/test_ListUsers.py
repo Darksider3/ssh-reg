@@ -13,6 +13,12 @@ class TestListUsers(unittest.TestCase):
         except IOError as fs_err:
             self.fail(fs_err)
 
+    def test_singleUser(self):
+        try:
+            ListUsers(testcfg.test_db, single_user=testcfg.assured_user)
+        except Exception:
+            self.fail()
+
     def test_output_as_list(self):
         # count newlines in string, everything under 3 is wrong, and above 20 too.
         out = self.list.output_as_list().splitlines()

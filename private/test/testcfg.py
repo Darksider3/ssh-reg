@@ -1,3 +1,16 @@
+test_random_iterations: int = 50
+
+
+def genRandomString(iterations: int = test_random_iterations, size: int = 20, alphabet: str = ""):
+    import random, string
+    if alphabet == "":
+        letters = string.digits + string.printable + string.ascii_letters
+    else:
+        letters = alphabet
+    for i in range(iterations):
+        yield ''.join(random.choice(letters) for i in range(size)).capitalize()
+
+assured_user: str = "darksider3"
 test_backup_csv: str = "test/testbackup.csv"
 test_db: str = "./test/applications.sqlite"
 test_import_csv: str = "test/testimport.csv"
@@ -39,7 +52,9 @@ NrRFi9wrf+M7Q== schacon@mylaptop.local"""]
 Validator_invalid_ssh: list = ["lol.", "ssh-rsa lol."]
 
 #Y-%m-%d %H:%M:%S
-Validator_valid_datetime: list = ["2020-10-07 14:15:30"]
+
+Validator_valid_datetime: list = ["2020-10-07 14:15:30", "2020-01-07 12:23:11"]
+Validator_ivvalid_datetime: list = ["20201007 14:15:30", "2020-01-07 122311"]
 
 Validator_valid_checkname_names: list = ["HalloWelt"]
 Validator_invalid_checkname_names: list = ["\\n", "\n\b"]
